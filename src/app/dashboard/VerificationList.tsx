@@ -19,6 +19,7 @@ import {
   fetchProofRequestDetails,
   fetchVerificationList,
   invitationsApi,
+  landingPage,
   signOutApi,
   webhookUrlConfig,
 } from "@/config/constant";
@@ -78,7 +79,7 @@ export interface IColumnData {
 const VerificationList = (): React.JSX.Element => {
   const router = useRouter();
   const translate = useTranslations("VerificationList");
-  const [ecosystemList, setEcosystemList] = useState<any>([]);
+  const [verificationList, setVerificationList] = useState<any>([]);
   const [listAPIParameter, setListAPIParameter] =
     useState<any>(initialPageState);
   const [totalItem, setTotalItem] = useState(0);
@@ -135,14 +136,28 @@ const VerificationList = (): React.JSX.Element => {
     ITableMetadata | []
   >([]);
 
-  const config = {
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${verifierAccessToken}`,
-    },
-  };
 
-  const redirectUrl = `${process.env.NEXT_PUBLIC_CLIENT_URL}/en/ecosystems`;
+
+  const redirectUrl = `${process.env.NEXT_PUBLIC_CLIENT_URL}/${landingPage}`;
+
+  const fetchInvitations = async () => {
+    try {
+      setLoading(true)
+      const data = await getRequest(invitationsApi);
+      console.log("datae",data)
+      setLoading(false);
+      setShowOrgRegistrationModal(false);
+    } catch (error) {
+      console.error("fetchInvitations",error)
+      setErrorMessage(`Failed to fetch invitations ${error}`)
+    }
+    
+  }
+
+  useEffect(() => {
+      fetchInvitations()
+    }
+  ,[])
 
   // const webhookURLConfig = async (orgId: string) => {
   //   try {
@@ -168,13 +183,7 @@ const VerificationList = (): React.JSX.Element => {
   //   }
   // };
 
-  // useEffect(() => {
-  //   const handleOrgSelection = async () => {
-  //     if (!selectedOrg) {
-  //       setShowOrgRegistrationModal(true);
-  //       setShowWalletInfoModal(false);
-  //       return;
-  //     }
+ 
 
   //     setShowOrgRegistrationModal(false);
   //     if (selectedOrg?.orgAgent?.length > 0) {
@@ -547,25 +556,6 @@ const VerificationList = (): React.JSX.Element => {
   //   fetchVerificationData(listAPIParameter, false); // Changed to false to use tableLoading
   // };
 
-  const fetchInvitations = async () => {
-    try {
-      setLoading(true)
-      const data = await getRequest(invitationsApi);
-      console.log("datae",data)
-      setEcosystemList(data?.data.data)
-      setLoading(false);
-    } catch (error) {
-      console.error("fetchInvitations",error)
-      setErrorMessage(`Failed to fetch invitations ${error}`)
-    }
-    
-  }
-
-  useEffect(() => {
-      fetchInvitations()
-    }
-  ,[])
-
   const handlePageChange = (page: number): void => {
     setPaginationParameter((prevState) => ({
       ...prevState,
@@ -579,126 +569,263 @@ const VerificationList = (): React.JSX.Element => {
     return result;
   };
 
-  const columnData: IColumnData[] = [
-    {
-      id: "email",
-      title: "Email",
-      accessorKey: "email",
-      columnFunction: [],
-      cell: ({ row }) => {
-        console.log("row",row)
-        return (
-          <>
-            <span
-              className="cursor-pointer"
-            >
-              {row.original.email}
-            </span>
-          </>
-        );
-      },
-    },
-    {
-      id: "name",
-      title: "Ecosystem Name",
-      accessorKey: "name",      
-      columnFunction: [],
-      cell: ({ row }) => (
-        <div
-          className="cursor-pointer"
-        >
-          {row.original?.ecosystem?.name ?? '--'}
-        </div>
-      ),
-    },
-    
-    // {
-    //   id: "leadOranization",
-    //   title: "Lead Organization",
-    //   accessorKey: "leadOranization",
-    //   columnFunction: [],
-    //   cell: ({ row }) => (
-    //     <div>
-    //       {row.original.schemaName
-    //         ? row.original.schemaName
-    //         : translate("notAvailable")}
-    //     </div>
-    //   ),
-    // },
-    // {
-    //   id: "status",
-    //   title: "Status",
-    //   accessorKey: "status",
-    //   cell: ({ row }) => (
-    //     <span
-    //       className={`text-xs font-medium sm:mr-0 md:mr-2 min-[320px]:px-1 sm:px-0 lg:px-0.5 py-0.5 rounded-md flex justify-center w-full 2xl:w-10/12
-    //       ${
-    //         row.original?.state === ProofRequestState.requestSent &&
-    //         "bg-[var(--accent)] text-[var(--accent-foreground)] border border-[var(--accent)] border-opacity-90"
-    //       }
-    //       ${
-    //         row.original?.state === ProofRequestState.done &&
-    //         "bg-[var(--success)]/15 text-[var(--success)] border border-[var(--success)] border-opacity-70"
-    //       }
-    //       ${
-    //         row.original?.state === ProofRequestState.abandoned &&
-    //         "bg-[var(--failed)]/15 text-[var(--failed)] border border-[var(--failed)] border-opacity-70"
-    //       }
-    //       ${
-    //         row.original?.state === ProofRequestState.presentationReceived &&
-    //         "bg-[var(--accent)] text-[var(--accent-foreground)] border border-[var(--secondary)] border-opacity-80"
-    //       }
-    //     `}
-    //     >
-    //       {row.original?.state === ProofRequestState.requestSent
-    //         ? ProofRequestStateUserText.requestSent
-    //         : row.original?.state === ProofRequestState.presentationReceived
-    //         ? ProofRequestStateUserText.requestReceived
-    //         : row.original?.state === ProofRequestState.done
-    //         ? ProofRequestStateUserText.done
-    //         : row.original?.state === ProofRequestState.abandoned
-    //         ? ProofRequestStateUserText.abandoned
-    //         : ""}
-    //     </span>
-    //   ),
-    //   columnFunction: [],
-    // },
-    // {
-    //   id: "actions",
-    //   title: "Action",
-    //   accessorKey: "actions",
-    //   cell: ({ row }) => (
-    //     <Button
-    //       variant="default"
-    //       disabled={
-    //         loadingId === row.original.presentationId ||
-    //         (row.original.state !== ProofRequestState.presentationReceived &&
-    //           row.original?.state !== "done" &&
-    //           row.original?.state !== "abandoned")
-    //       }
-    //       className={`flex items-center justify-center ${
-    //         row.original.state !== ProofRequestState.presentationReceived &&
-    //         row.original?.state !== "done" &&
-    //         row.original?.state !== "abandoned"
-    //           ? "cursor-not-allowed opacity-50 text-base font-medium text-center"
-    //           : "text-base font-medium text-center"
-    //       }`}
-    //       onClick={() => {
-    //       }}
-    //     >
-    //       View
-    //     </Button>
-    //   ),
-    //   columnFunction: [],
-    // },
-  ];
+  // const columnData: IColumnData[] = [
+  //   {
+  //     id: "presentationId",
+  //     title: "Verification ID",
+  //     accessorKey: "presentationId",
+  //     columnFunction: [
+  //       {
+  //         sortCallBack: async (order): Promise<void> => {
+  //           setPaginationParameter((prev) => ({
+  //             ...prev,
+  //             sortBy: "presentationId",
+  //             sortOrder: order,
+  //           }));
+  //         },
+  //       },
+  //     ],
+  //     cell: ({ row }) => (
+  //       <div
+  //         data-tooltip-id={`tooltip-presentationId-${row.original.presentationId}`}
+  //         data-tooltip-content={row.original.presentationId}
+  //         className="cursor-pointer"
+  //       >
+  //         {row.original.presentationId
+  //           ? row.original.presentationId
+  //           : translate("notAvailable")}
+  //         <Tooltip
+  //           id={`tooltip-presentationId-${row.original.presentationId}`}
+  //           place="top"
+  //         />
+  //       </div>
+  //     ),
+  //   },
+  //   {
+  //     id: "emailId",
+  //     title: "Holder",
+  //     accessorKey: "emailId",
+  //     columnFunction: [],
+  //     cell: ({ row }) => {
+  //       const email = getDecryptedEmail(row.original.emailId);
+  //       return (
+  //         <>
+  //           <span
+  //             data-tooltip-id={`tooltip-email-${row.original.presentationId}`}
+  //             data-tooltip-content={email}
+  //             className="cursor-pointer"
+  //           >
+  //             {email}
+  //           </span>
+  //           {row.original.emailId && (
+  //             <Tooltip
+  //               id={`tooltip-email-${row.original.presentationId}`}
+  //               place="top"
+  //             />
+  //           )}
+  //         </>
+  //       );
+  //     },
+  //   },
+  //   {
+  //     id: "templateName",
+  //     title: "Template Name",
+  //     accessorKey: "templateName",
+  //     columnFunction: [],
+  //     cell: ({ row }) => (
+  //       <div>
+  //         {row.original.schemaName
+  //           ? row.original.schemaName
+  //           : translate("notAvailable")}
+  //       </div>
+  //     ),
+  //   },
+  //   {
+  //     id: "issuer",
+  //     title: "Issuer",
+  //     accessorKey: "issuer",
+  //     columnFunction: [],
+  //     cell: ({ row }) => {
+  //       const issuer = row.original.issuanceEntity
+  //         ? row.original.issuanceEntity
+  //         : translate("notAvailable");
+  //       return (
+  //         <>
+  //           <span
+  //             data-tooltip-id={`tooltip-issuer-${row.original.presentationId}`}
+  //             data-tooltip-content={issuer}
+  //             className="max-w-[200px] text-ellipsis overflow-hidden cursor-pointer inline-block"
+  //           >
+  //             {issuer}
+  //           </span>
+  //           {row.original.issuanceEntity && (
+  //             <Tooltip
+  //               id={`tooltip-issuer-${row.original.presentationId}`}
+  //               place="top"
+  //             />
+  //           )}
+  //         </>
+  //       );
+  //     },
+  //   },
+  //   {
+  //     id: "createDateTime",
+  //     title: "Requested On",
+  //     accessorKey: "createDateTime",
+  //     columnFunction: [
+  //       {
+  //         sortCallBack: async (order): Promise<void> => {
+  //           setPaginationParameter((prev) => ({
+  //             ...prev,
+  //             sortBy: "createDateTime",
+  //             sortOrder: order,
+  //           }));
+  //         },
+  //       },
+  //     ],
+  //     cell: ({ row }) => (
+  //       <div>
+  //         <span
+  //           data-tooltip-id={`tooltip-${row.original.createDateTime}`}
+  //           data-tooltip-content={formatDate(row.original.createDateTime)}
+  //           className="cursor-pointer"
+  //         >
+  //           {dateConversion(row.original.createDateTime)}
+  //         </span>
+  //         <Tooltip id={`tooltip-${row.original.createDateTime}`} place="top" />
+  //       </div>
+  //     ),
+  //   },
+  //   {
+  //     id: "status",
+  //     title: "Status",
+  //     accessorKey: "status",
+  //     cell: ({ row }) => (
+  //       <span
+  //         className={`text-xs font-medium sm:mr-0 md:mr-2 min-[320px]:px-1 sm:px-0 lg:px-0.5 py-0.5 rounded-md flex justify-center w-full 2xl:w-10/12
+  //         ${
+  //           row.original?.state === ProofRequestState.requestSent &&
+  //           "bg-[var(--accent)] text-[var(--accent-foreground)] border border-[var(--accent)] border-opacity-90"
+  //         }
+  //         ${
+  //           row.original?.state === ProofRequestState.done &&
+  //           "bg-[var(--success)]/15 text-[var(--success)] border border-[var(--success)] border-opacity-70"
+  //         }
+  //         ${
+  //           row.original?.state === ProofRequestState.abandoned &&
+  //           "bg-[var(--failed)]/15 text-[var(--failed)] border border-[var(--failed)] border-opacity-70"
+  //         }
+  //         ${
+  //           row.original?.state === ProofRequestState.presentationReceived &&
+  //           "bg-[var(--accent)] text-[var(--accent-foreground)] border border-[var(--secondary)] border-opacity-80"
+  //         }
+  //       `}
+  //       >
+  //         {row.original?.state === ProofRequestState.requestSent
+  //           ? ProofRequestStateUserText.requestSent
+  //           : row.original?.state === ProofRequestState.presentationReceived
+  //           ? ProofRequestStateUserText.requestReceived
+  //           : row.original?.state === ProofRequestState.done
+  //           ? ProofRequestStateUserText.done
+  //           : row.original?.state === ProofRequestState.abandoned
+  //           ? ProofRequestStateUserText.abandoned
+  //           : ""}
+  //       </span>
+  //     ),
+  //     columnFunction: [],
+  //   },
+  //   {
+  //     id: "actions",
+  //     title: "Action",
+  //     accessorKey: "actions",
+  //     cell: ({ row }) => (
+  //       <Button
+  //         variant="default"
+  //         disabled={
+  //           loadingId === row.original.presentationId ||
+  //           (row.original.state !== ProofRequestState.presentationReceived &&
+  //             row.original?.state !== "done" &&
+  //             row.original?.state !== "abandoned")
+  //         }
+  //         className={`flex items-center justify-center ${
+  //           row.original.state !== ProofRequestState.presentationReceived &&
+  //           row.original?.state !== "done" &&
+  //           row.original?.state !== "abandoned"
+  //             ? "cursor-not-allowed opacity-50 text-base font-medium text-center"
+  //             : "text-base font-medium text-center"
+  //         }`}
+  //         onClick={() => {
+  //           if (
+  //             row.original.state === ProofRequestState.presentationReceived ||
+  //             row.original?.state === "done"
+  //           ) {
+  //             setLoadingId(row.original.presentationId);
+  //             setVerificationDetials({
+  //               holder: getDecryptedEmail(row.original.emailId),
+  //               issuer: row.original.issuanceEntity
+  //                 ? row.original.issuanceEntity
+  //                 : translate("not_available"),
+  //             });
+  //             openProofRequestModel(
+  //               true,
+  //               row.original?.presentationId,
+  //               row.original?.state
+  //             );
+  //             getProofPresentationData(row.original?.presentationId).finally(
+  //               () => setLoadingId(null)
+  //             );
+  //           }
+  //         }}
+  //       >
+  //         {loadingId === row.original.presentationId ? (
+  //           <Loader />
+  //         ) : row.original?.state === "done" ? (
+  //           <div className="pr-1 flex gap-2">
+  //             <div className="flex items-center justify-center">
+  //               <ViewSvg />
+  //             </div>
+  //             <span>{translate("view")}</span>
+  //           </div>
+  //         ) : row.original?.state === "abandoned" ? (
+  //           <>
+  //             <p
+  //               className="flex items-center justify-center"
+  //               data-tooltip-id="my-tooltip"
+  //               data-tooltip-content={
+  //                 row.original.errorMessage?.split(":")[1].trim() ||
+  //                 translate("notAnyReason")
+  //               }
+  //             >
+  //               <Image
+  //                 src="/images/DeclinedReason.png"
+  //                 alt={translate("declinedReasonImg")}
+  //                 width={30}
+  //                 height={30}
+  //               />
+  //               <span>{translate("declined_reason")}</span>
+  //             </p>
+  //             <Tooltip id="my-tooltip" place="top" className="tooltip-custom" />
+  //           </>
+  //         ) : (
+  //           <div className="flex items-center space-x-1 gap-1">
+  //             <div className="flex items-center justify-center">
+  //               <VerifySvg />
+  //             </div>
+  //             <span>{translate("verify")}</span>
+  //           </div>
+  //         )}
+  //       </Button>
+  //     ),
+  //     columnFunction: [],
+  //   },
+  // ];
 
   const metadata: ITableMetadata = {
     enableSelection: false,
   };
 
-  const tableStyling: TableStyling = { metadata, columnData };
-  const column = getColumns<any>(tableStyling);
+  // const tableStyling: TableStyling = { metadata, columnData };
+  // const column = getColumns<any>(tableStyling);
 
   const handleLogout = async (): Promise<void> => {
     try {
@@ -722,7 +849,7 @@ const VerificationList = (): React.JSX.Element => {
         const interval = setInterval(async () => {
           if (!localStorage.getItem(rootKey)) {
             clearInterval(interval);
-            const redirectUrl = `${process.env.NEXT_PUBLIC_CLIENT_URL}/en/verificationList`;
+            const redirectUrl = `${process.env.NEXT_PUBLIC_CLIENT_URL}/${landingPage}`;
             await signOut({
               callbackUrl: `${
                 process.env.NEXT_PUBLIC_CREDEBL_UI_PATH
@@ -742,7 +869,7 @@ const VerificationList = (): React.JSX.Element => {
         const interval = setInterval(async () => {
           if (!localStorage.getItem(rootKey)) {
             clearInterval(interval);
-            const redirectUrl = `${process.env.NEXT_PUBLIC_CLIENT_URL}/en/verificationList`;
+            const redirectUrl = `${process.env.NEXT_PUBLIC_CLIENT_URL}/${landingPage}`;
             await signOut({
               callbackUrl: `${
                 process.env.NEXT_PUBLIC_CREDEBL_UI_PATH
@@ -784,11 +911,11 @@ const VerificationList = (): React.JSX.Element => {
           </div>
         </div>
         <div className="relative min-h-[400px]">
-          <DataTable
+          {/*<DataTable
             isLoading={tableLoading}
             placeHolder="Search"
             data={
-              Array.isArray(ecosystemList) ? ecosystemList : []
+              Array.isArray(verificationTableData) ? verificationTableData : []
             }
             columns={column}
             index={"id"}
@@ -814,7 +941,7 @@ const VerificationList = (): React.JSX.Element => {
                 search: term,
               }))
             }
-          />
+          />*/}
         </div>
       </div>
       {/* {userData && (

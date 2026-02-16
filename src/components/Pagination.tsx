@@ -1,7 +1,6 @@
 import Image from 'next/image'
 import React from 'react'
 /* eslint-disable no-unused-vars */
-import { useTranslations } from 'next-intl'
 interface PaginationProps {
   currentPage: number
   totalItems: number
@@ -39,13 +38,12 @@ const Pagination: React.FC<PaginationProps> = ({
   const firstValue = (currentPage - 1) * pageSize
   const startIndex = Math.max(0, firstValue + 1)
   const endIndex = Math.min(currentPage * pageSize, totalItems)
-  const translate = useTranslations('Pagination')
 
   return (
     <>
       <div className="text-sm text-grayText">
-        {translate('show')} <span className="font-bold">{startIndex}-{endIndex} &nbsp;</span>
-        {translate('of')} <span className="font-bold">{totalItems}</span>
+        show <span className="font-bold">{startIndex}-{endIndex} &nbsp;</span>
+        of <span className="font-bold">{totalItems}</span>
       </div>
       <div className="flex gap-2">
         {hasPreviousPage ? (

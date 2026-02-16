@@ -68,12 +68,6 @@ const SessionCheck = ({
     }
   }
 
-  useEffect(() => {
-    document.body.style.overflow = 'hidden'
-    return () => {
-      document.body.style.overflow = 'unset'
-    }
-  }, [])
 
   const handleAuthenticated = async () => {
     if (!session?.sessionId){
@@ -81,7 +75,7 @@ const SessionCheck = ({
     }
     await fetchSeesionDetails(session.sessionId)
     dispatch(setSessionId(session.sessionId))
-    const redirectUrl = `${process.env.NEXT_PUBLIC_CLIENT_URL}/${locale}/ecosystems`
+    const redirectUrl = `${process.env.NEXT_PUBLIC_CLIENT_URL}/ecosystems`
     router.replace(redirectUrl)
     setIsChecking(false)
   }

@@ -30,7 +30,7 @@ const handleLogout = async (): Promise<void> => {
       const interval = setInterval(async () => {
         if (!localStorage.getItem(rootKey)) {
           clearInterval(interval);
-          const redirectUrl = `${process.env.NEXT_PUBLIC_CLIENT_URL}/en/${landingPage}`;
+          const redirectUrl = `${process.env.NEXT_PUBLIC_CLIENT_URL}/${landingPage}`;
           await signOut({
             callbackUrl: `${
               process.env.NEXT_PUBLIC_CREDEBL_UI_PATH
@@ -50,7 +50,7 @@ const handleLogout = async (): Promise<void> => {
       const interval = setInterval(async () => {
         if (!localStorage.getItem(rootKey)) {
           clearInterval(interval);
-          const redirectUrl = `${process.env.NEXT_PUBLIC_CLIENT_URL}/en/${landingPage}`;
+          const redirectUrl = `${process.env.NEXT_PUBLIC_CLIENT_URL}/${landingPage}`;
           await signOut({
             callbackUrl: `${
               process.env.NEXT_PUBLIC_CREDEBL_UI_PATH
@@ -66,7 +66,6 @@ const handleLogout = async (): Promise<void> => {
 
 axios.interceptors.request.use(
   async (config) => {
-    console.log('axios intercetor call',config.url)
     const { verifier } = store.getState()
     if (!verifier?.verifierToken || !verifier.refreshToken) {
       console.log("verifier token",verifier)
@@ -94,7 +93,6 @@ axios.interceptors.request.use(
           config.headers.Authorization = `Bearer ${newToken}`
         }
       }else {
-        console.log("plug in headers",config)
           return {
             ...config,
             headers: new axios.AxiosHeaders({
@@ -136,7 +134,7 @@ const postRequest = async (
     const response = await axios.post(url, data, config);
     return response;
   } catch (error) {
-    handleError(error);
+    return await handleError(error);
   }
 };
 

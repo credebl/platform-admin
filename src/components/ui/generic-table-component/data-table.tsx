@@ -150,11 +150,15 @@ export function DataTable<TData, TValue>({
           ? updater({ pageIndex, pageSize })
           : updater
       if (newState.pageSize !== pageSize) {
+         console.log("page size change",pageSize,newState.pageSize)
         onPageChange(0)
       } else {
+
+         console.log("page size else",newState.pageIndex)
         onPageChange(newState.pageIndex)
       }
       if (pageSize !== newState.pageSize) {
+         console.log("page size same againchange",pageSize,newState.pageSize)
         onPageSizeChange(newState.pageSize)
       }
     },

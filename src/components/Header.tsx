@@ -31,7 +31,6 @@ import { setLoggedInUser } from "@/lib/userSlice";
 import { signOut } from "next-auth/react";
 import { useDispatch } from "react-redux";
 import { useRouter } from "next/navigation";
-import { useTranslations } from "next-intl";
 
 // import { useSession } from "next-auth/react";
 
@@ -62,7 +61,6 @@ const Header = (): React.JSX.Element => {
 
   const dispatch = useAppDispatch();
   const router = useRouter();
-  const translate = useTranslations("SideBar");
   const sessionId = useAppSelector((state) => state.verifier.sessionId)
 
   // const { data: session } = useSession();
@@ -89,6 +87,7 @@ const Header = (): React.JSX.Element => {
               lastName,
               firstName,
             };
+            console.log("userDetails",userDetails)
             setUserProfile(userData);
             if (id) {
               dispatch(setLoggedInUser(userDetails));
@@ -135,7 +134,7 @@ const Header = (): React.JSX.Element => {
         const interval = setInterval(async () => {
           if (!localStorage.getItem(rootKey)) {
             clearInterval(interval);
-            const redirectUrl = `${process.env.NEXT_PUBLIC_CLIENT_URL}/en/${landingPage}`;
+            const redirectUrl = `${process.env.NEXT_PUBLIC_CLIENT_URL}/${landingPage}`;
             await signOut({
               callbackUrl: `${
                 process.env.NEXT_PUBLIC_CREDEBL_UI_PATH
@@ -155,7 +154,7 @@ const Header = (): React.JSX.Element => {
         const interval = setInterval(async () => {
           if (!localStorage.getItem(rootKey)) {
             clearInterval(interval);
-            const redirectUrl = `${process.env.NEXT_PUBLIC_CLIENT_URL}/en/${landingPage}`;
+            const redirectUrl = `${process.env.NEXT_PUBLIC_CLIENT_URL}/${landingPage}`;
             await signOut({
               callbackUrl: `${
                 process.env.NEXT_PUBLIC_CREDEBL_UI_PATH
@@ -172,7 +171,7 @@ const Header = (): React.JSX.Element => {
   return (
     <>
       <nav className="fixed z-20 w-full lg:pl-60 bg-whiteColor">
-        <div className="flex items-center justify-between h-16 px-4 lg:px-6 pt-5">
+        <div className="flex items-center justify-between h-16 px-4 lg:px-6 pt-5 bg-white">
           <div className="flex items-center">
             <Button
               onClick={toggleSidebar}
@@ -192,7 +191,7 @@ const Header = (): React.JSX.Element => {
             </div>
           </div>
           <div className="flex items-center gap-4">
-            <DropdownMenu>
+            <DropdownMenu >
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="ghost"
@@ -212,11 +211,19 @@ const Header = (): React.JSX.Element => {
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56">
-                <DropdownMenuLabel>My Account</DropdownMenuLabel>
+              <DropdownMenuContent className="w-60 border">
+                <DropdownMenuLabel><div>
+                           <div> {userProfile?.firstName} </div>
+                          <div> <b>{userProfile?.email}</b></div>
+                        </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={()=> router.push("/settings")}>
+                          Settings 
+                </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleLogout}>
-                  {translate("logout")}
+                           Logout
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

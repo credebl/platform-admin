@@ -9,9 +9,10 @@ import {
   getColumns,
 } from "@/components/ui/generic-table-component/columns";
 import {
+    invitationState,
   ProofRequestState,
   ProofRequestStateUserText,
-} from "../../../utils/common.interfaces";
+} from "../../utils/common.interfaces";
 import React, { useEffect, useMemo, useState } from "react";
 import { ScanSvg, VerifySvg, ViewSvg } from "@/config/SVG";
 import { dateConversion, decryptValue } from "@/config/common.functions";
@@ -19,7 +20,6 @@ import {
   fetchProofRequestDetails,
   fetchVerificationList,
   invitationsApi,
-  landingPage,
   signOutApi,
   webhookUrlConfig,
 } from "@/config/constant";
@@ -39,11 +39,13 @@ import { signOut } from "next-auth/react";
 import { useAppSelector } from "@/lib/hooks";
 import { useLocaleRouter } from "@/utils/useLocalizedRouter";
 import { useRouter } from "next/navigation";
-import { useTranslations } from "next-intl";
+import { Input } from "@/components/ui/input";
+import Alert from "@/components/alert";
+import { HttpStatusCode } from "axios";
 
 const initialPageState = {
-  itemPerPage: 10,
-  page: 1,
+  pageSize: 10,
+  pageNumber: 1,
   search: "",
   sortBy: "createDateTime",
   sortingOrder: "desc",
@@ -51,8 +53,8 @@ const initialPageState = {
 };
 
 interface PageParameter {
-  currentPage: number;
-  totalItems: number;
+  pageNumber: number;
+  totalPages: number;
   hasNextPage: boolean;
   hasPreviousPage: boolean;
   nextPage: number | null;
@@ -76,13 +78,12 @@ export interface IColumnData {
   cell?: (cell: CellContext<any, unknown>) => JSX.Element;
 }
 
-const VerificationList = (): React.JSX.Element => {
+const InvitationsList = (): React.JSX.Element => {
   const router = useRouter();
-  const translate = useTranslations("VerificationList");
-  const [verificationList, setVerificationList] = useState<any>([]);
+  const [ecosystemList, setEcosystemList] = useState<any>([]);
   const [listAPIParameter, setListAPIParameter] =
-    useState<any>(initialPageState);
-  const [totalItem, setTotalItem] = useState(0);
+    useState(initialPageState);
+  const [email, setEmail] = useState('');
   const [openModal, setOpenModal] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
   const [requestId, setRequestId] = useState<string>("");
@@ -91,13 +92,10 @@ const VerificationList = (): React.JSX.Element => {
   const [view, setView] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [showAlert, setShowAlert] = useState(false);
+ const [message, setMessage] = useState('')
   const [showOrgRegistrationModal, setShowOrgRegistrationModal] =
     useState(false);
   const [stateValue, setStateValue] = useState("");
-  const [verification, setVerificationDetials] = useState({
-    holder: translate("not_available"),
-    issuer: translate("not_available"),
-  });
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const [showWalletInfoModal, setShowWalletInfoModal] = useState(false);
   const sessionId = useAppSelector((state) => state.verifier.sessionId);
@@ -118,9 +116,9 @@ const VerificationList = (): React.JSX.Element => {
 
   const [paginationParameter, setPaginationParameter] = useState<PageParameter>(
     {
-      currentPage: 0,
-      totalItems: 10,
-      lastPage: 1,
+      pageNumber: 0,
+      totalPages: 0,
+      lastPage: 0,
       pageSize: 10,
       hasNextPage: false,
       hasPreviousPage: false,
@@ -136,28 +134,14 @@ const VerificationList = (): React.JSX.Element => {
     ITableMetadata | []
   >([]);
 
+  const config = {
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${verifierAccessToken}`,
+    },
+  };
 
-
-  const redirectUrl = `${process.env.NEXT_PUBLIC_CLIENT_URL}/en/${landingPage}`;
-
-  const fetchInvitations = async () => {
-    try {
-      setLoading(true)
-      const data = await getRequest(invitationsApi);
-      console.log("datae",data)
-      setLoading(false);
-      setShowOrgRegistrationModal(false);
-    } catch (error) {
-      console.error("fetchInvitations",error)
-      setErrorMessage(`Failed to fetch invitations ${error}`)
-    }
-    
-  }
-
-  useEffect(() => {
-      fetchInvitations()
-    }
-  ,[])
+  const redirectUrl = `${process.env.NEXT_PUBLIC_CLIENT_URL}/ecosystems`;
 
   // const webhookURLConfig = async (orgId: string) => {
   //   try {
@@ -183,7 +167,13 @@ const VerificationList = (): React.JSX.Element => {
   //   }
   // };
 
- 
+  // useEffect(() => {
+  //   const handleOrgSelection = async () => {
+  //     if (!selectedOrg) {
+  //       setShowOrgRegistrationModal(true);
+  //       setShowWalletInfoModal(false);
+  //       return;
+  //     }
 
   //     setShowOrgRegistrationModal(false);
   //     if (selectedOrg?.orgAgent?.length > 0) {
@@ -503,16 +493,13 @@ const VerificationList = (): React.JSX.Element => {
   //   setVerificationList(generatedVerificationList);
   // };
 
-  // useEffect(() => {
-  //   fetchVerificationData(listAPIParameter, false);
-  // }, [
-  //   listAPIParameter,
-  //   paginationParameter.currentPage,
-  //   paginationParameter.sortOrder,
-  //   paginationParameter.pageSize,
-  //   paginationParameter.sortBy,
-  //   paginationParameter.search,
-  // ]);
+   useEffect(() => {
+      console.log("paginationParameter",paginationParameter)
+      fetchInvitations();
+   }, [
+      paginationParameter.pageNumber,
+      paginationParameter.pageSize,
+   ]);
 
   // const scanToVerify = async () => {
   //   setLoading(true);
@@ -555,6 +542,34 @@ const VerificationList = (): React.JSX.Element => {
   //   decryptedEmailCache.clear();
   //   fetchVerificationData(listAPIParameter, false); // Changed to false to use tableLoading
   // };
+   //
+  useEffect(()=> {console.log("paginaitonparametne",paginationParameter)},[paginationParameter.pageNumber])
+
+  const fetchInvitations = async () => {
+    try {
+      setLoading(true)
+      const data = await getRequest(invitationsApi, {pageSize: paginationParameter?.pageSize , pageNumber: paginationParameter.pageNumber + 1});
+         console.log("raw",data?.data.data)
+      console.log("datae",data?.data.data.data)
+      const totalPages = data?.data.data.totalPages
+       setPaginationParameter((prev) => ({
+          ...prev,
+          totalPages: totalPages // or just totalPages
+       }));
+      setEcosystemList(data?.data.data.data)
+
+      setLoading(false);
+    } catch (error) {
+      console.error("fetchInvitations",error)
+      setErrorMessage(`Failed to fetch invitations ${error}`)
+    }
+    
+  }
+
+  useEffect(() => {
+      fetchInvitations()
+    }
+  ,[])
 
   const handlePageChange = (page: number): void => {
     setPaginationParameter((prevState) => ({
@@ -569,263 +584,126 @@ const VerificationList = (): React.JSX.Element => {
     return result;
   };
 
-  // const columnData: IColumnData[] = [
-  //   {
-  //     id: "presentationId",
-  //     title: "Verification ID",
-  //     accessorKey: "presentationId",
-  //     columnFunction: [
-  //       {
-  //         sortCallBack: async (order): Promise<void> => {
-  //           setPaginationParameter((prev) => ({
-  //             ...prev,
-  //             sortBy: "presentationId",
-  //             sortOrder: order,
-  //           }));
-  //         },
-  //       },
-  //     ],
-  //     cell: ({ row }) => (
-  //       <div
-  //         data-tooltip-id={`tooltip-presentationId-${row.original.presentationId}`}
-  //         data-tooltip-content={row.original.presentationId}
-  //         className="cursor-pointer"
-  //       >
-  //         {row.original.presentationId
-  //           ? row.original.presentationId
-  //           : translate("notAvailable")}
-  //         <Tooltip
-  //           id={`tooltip-presentationId-${row.original.presentationId}`}
-  //           place="top"
-  //         />
-  //       </div>
-  //     ),
-  //   },
-  //   {
-  //     id: "emailId",
-  //     title: "Holder",
-  //     accessorKey: "emailId",
-  //     columnFunction: [],
-  //     cell: ({ row }) => {
-  //       const email = getDecryptedEmail(row.original.emailId);
-  //       return (
-  //         <>
-  //           <span
-  //             data-tooltip-id={`tooltip-email-${row.original.presentationId}`}
-  //             data-tooltip-content={email}
-  //             className="cursor-pointer"
-  //           >
-  //             {email}
-  //           </span>
-  //           {row.original.emailId && (
-  //             <Tooltip
-  //               id={`tooltip-email-${row.original.presentationId}`}
-  //               place="top"
-  //             />
-  //           )}
-  //         </>
-  //       );
-  //     },
-  //   },
-  //   {
-  //     id: "templateName",
-  //     title: "Template Name",
-  //     accessorKey: "templateName",
-  //     columnFunction: [],
-  //     cell: ({ row }) => (
-  //       <div>
-  //         {row.original.schemaName
-  //           ? row.original.schemaName
-  //           : translate("notAvailable")}
-  //       </div>
-  //     ),
-  //   },
-  //   {
-  //     id: "issuer",
-  //     title: "Issuer",
-  //     accessorKey: "issuer",
-  //     columnFunction: [],
-  //     cell: ({ row }) => {
-  //       const issuer = row.original.issuanceEntity
-  //         ? row.original.issuanceEntity
-  //         : translate("notAvailable");
-  //       return (
-  //         <>
-  //           <span
-  //             data-tooltip-id={`tooltip-issuer-${row.original.presentationId}`}
-  //             data-tooltip-content={issuer}
-  //             className="max-w-[200px] text-ellipsis overflow-hidden cursor-pointer inline-block"
-  //           >
-  //             {issuer}
-  //           </span>
-  //           {row.original.issuanceEntity && (
-  //             <Tooltip
-  //               id={`tooltip-issuer-${row.original.presentationId}`}
-  //               place="top"
-  //             />
-  //           )}
-  //         </>
-  //       );
-  //     },
-  //   },
-  //   {
-  //     id: "createDateTime",
-  //     title: "Requested On",
-  //     accessorKey: "createDateTime",
-  //     columnFunction: [
-  //       {
-  //         sortCallBack: async (order): Promise<void> => {
-  //           setPaginationParameter((prev) => ({
-  //             ...prev,
-  //             sortBy: "createDateTime",
-  //             sortOrder: order,
-  //           }));
-  //         },
-  //       },
-  //     ],
-  //     cell: ({ row }) => (
-  //       <div>
-  //         <span
-  //           data-tooltip-id={`tooltip-${row.original.createDateTime}`}
-  //           data-tooltip-content={formatDate(row.original.createDateTime)}
-  //           className="cursor-pointer"
-  //         >
-  //           {dateConversion(row.original.createDateTime)}
-  //         </span>
-  //         <Tooltip id={`tooltip-${row.original.createDateTime}`} place="top" />
-  //       </div>
-  //     ),
-  //   },
-  //   {
-  //     id: "status",
-  //     title: "Status",
-  //     accessorKey: "status",
-  //     cell: ({ row }) => (
-  //       <span
-  //         className={`text-xs font-medium sm:mr-0 md:mr-2 min-[320px]:px-1 sm:px-0 lg:px-0.5 py-0.5 rounded-md flex justify-center w-full 2xl:w-10/12
-  //         ${
-  //           row.original?.state === ProofRequestState.requestSent &&
-  //           "bg-[var(--accent)] text-[var(--accent-foreground)] border border-[var(--accent)] border-opacity-90"
-  //         }
-  //         ${
-  //           row.original?.state === ProofRequestState.done &&
-  //           "bg-[var(--success)]/15 text-[var(--success)] border border-[var(--success)] border-opacity-70"
-  //         }
-  //         ${
-  //           row.original?.state === ProofRequestState.abandoned &&
-  //           "bg-[var(--failed)]/15 text-[var(--failed)] border border-[var(--failed)] border-opacity-70"
-  //         }
-  //         ${
-  //           row.original?.state === ProofRequestState.presentationReceived &&
-  //           "bg-[var(--accent)] text-[var(--accent-foreground)] border border-[var(--secondary)] border-opacity-80"
-  //         }
-  //       `}
-  //       >
-  //         {row.original?.state === ProofRequestState.requestSent
-  //           ? ProofRequestStateUserText.requestSent
-  //           : row.original?.state === ProofRequestState.presentationReceived
-  //           ? ProofRequestStateUserText.requestReceived
-  //           : row.original?.state === ProofRequestState.done
-  //           ? ProofRequestStateUserText.done
-  //           : row.original?.state === ProofRequestState.abandoned
-  //           ? ProofRequestStateUserText.abandoned
-  //           : ""}
-  //       </span>
-  //     ),
-  //     columnFunction: [],
-  //   },
-  //   {
-  //     id: "actions",
-  //     title: "Action",
-  //     accessorKey: "actions",
-  //     cell: ({ row }) => (
-  //       <Button
-  //         variant="default"
-  //         disabled={
-  //           loadingId === row.original.presentationId ||
-  //           (row.original.state !== ProofRequestState.presentationReceived &&
-  //             row.original?.state !== "done" &&
-  //             row.original?.state !== "abandoned")
-  //         }
-  //         className={`flex items-center justify-center ${
-  //           row.original.state !== ProofRequestState.presentationReceived &&
-  //           row.original?.state !== "done" &&
-  //           row.original?.state !== "abandoned"
-  //             ? "cursor-not-allowed opacity-50 text-base font-medium text-center"
-  //             : "text-base font-medium text-center"
-  //         }`}
-  //         onClick={() => {
-  //           if (
-  //             row.original.state === ProofRequestState.presentationReceived ||
-  //             row.original?.state === "done"
-  //           ) {
-  //             setLoadingId(row.original.presentationId);
-  //             setVerificationDetials({
-  //               holder: getDecryptedEmail(row.original.emailId),
-  //               issuer: row.original.issuanceEntity
-  //                 ? row.original.issuanceEntity
-  //                 : translate("not_available"),
-  //             });
-  //             openProofRequestModel(
-  //               true,
-  //               row.original?.presentationId,
-  //               row.original?.state
-  //             );
-  //             getProofPresentationData(row.original?.presentationId).finally(
-  //               () => setLoadingId(null)
-  //             );
-  //           }
-  //         }}
-  //       >
-  //         {loadingId === row.original.presentationId ? (
-  //           <Loader />
-  //         ) : row.original?.state === "done" ? (
-  //           <div className="pr-1 flex gap-2">
-  //             <div className="flex items-center justify-center">
-  //               <ViewSvg />
-  //             </div>
-  //             <span>{translate("view")}</span>
-  //           </div>
-  //         ) : row.original?.state === "abandoned" ? (
-  //           <>
-  //             <p
-  //               className="flex items-center justify-center"
-  //               data-tooltip-id="my-tooltip"
-  //               data-tooltip-content={
-  //                 row.original.errorMessage?.split(":")[1].trim() ||
-  //                 translate("notAnyReason")
-  //               }
-  //             >
-  //               <Image
-  //                 src="/images/DeclinedReason.png"
-  //                 alt={translate("declinedReasonImg")}
-  //                 width={30}
-  //                 height={30}
-  //               />
-  //               <span>{translate("declined_reason")}</span>
-  //             </p>
-  //             <Tooltip id="my-tooltip" place="top" className="tooltip-custom" />
-  //           </>
-  //         ) : (
-  //           <div className="flex items-center space-x-1 gap-1">
-  //             <div className="flex items-center justify-center">
-  //               <VerifySvg />
-  //             </div>
-  //             <span>{translate("verify")}</span>
-  //           </div>
-  //         )}
-  //       </Button>
-  //     ),
-  //     columnFunction: [],
-  //   },
-  // ];
+  const columnData: IColumnData[] = [
+    {
+      id: "email",
+      title: "Email",
+      accessorKey: "email",
+      columnFunction: [],
+      cell: ({ row }) => {
+        return (
+          <>
+            <span
+              className="cursor-pointer"
+            >
+              {row.original.email}
+            </span>
+          </>
+        );
+      },
+    },
+    {
+      id: "name",
+      title: "Ecosystem Name",
+      accessorKey: "name",      
+      columnFunction: [],
+      cell: ({ row }) => (
+        <div
+          className="cursor-pointer"
+        >
+          {row.original?.ecosystem ?
+               <div>
+                  <div className="text-[15px] mb-2"><b>{row.original?.ecosystem?.name && row.original?.ecosystem?.name[0].toUpperCase() + row.original?.ecosystem?.name.slice(1)}</b></div>
+                  <div className="max-w-sm  whitespace-normal break-words mb-2 text-muted-foreground">{100 < row.original?.ecosystem?.description.length ? row.original?.ecosystem?.description.slice(0,100) + '...' : row.original?.ecosystem?.description}</div>
+                  <div className="text-xs text-muted-foreground">
+                        <span className="font-semibold">Created : </span>
+                        <span>{dateConversion(row.original?.ecosystem?.createDateTime)}</span>
+                  </div>
+               </div>
+               :'--'
+
+          }
+        </div>
+      ),
+    },
+    
+    {
+      id: "leadOranization",
+      title: "Lead Organization",
+      accessorKey: "leadOranization",
+      columnFunction: [],
+      cell: ({ row }) => (
+        <div>
+          {row.original?.organisation?.name
+            ? row.original?.organisation?.name
+            : "--"}
+        </div>
+      ),
+    },
+    {
+      id: "status",
+      title: "Status",
+      accessorKey: "status",
+      cell: ({ row }) => (
+        <span
+          className={`text-xs font-medium min-[120px]:px-4  rounded-md flex justify-center w-fit border  
+          ${row.original?.ecosystem  && row.original?.orgStatus === invitationState.INACTIVE &&
+               "bg-gray-200 border border-[var(--accent)] border-opacity-90 text-muted-foreground"
+               }
+          ${row.original?.ecosystem  && row.original?.orgStatus === invitationState.ACTIVE &&
+               "bg-green-200 text-green border border-green border-opacity-70"
+               }
+          ${row.original?.status === invitationState.PENDING || row.original?.status === invitationState.ACCEPTED &&
+               "bg-[var(--primary)]/50  border  border-opacity-70"
+           }
+        `}
+        >
+          { row.original?.orgStatus === invitationState.INACTIVE
+            ? invitationState.INACTIVE[0].toUpperCase() + invitationState.INACTIVE.slice(1).toLowerCase()
+            : row.original?.orgStatus === invitationState.ACTIVE
+            ? invitationState.ACTIVE[0].toUpperCase() + invitationState.ACTIVE.slice(1).toLowerCase()
+            :"Pending"}
+          {/* { row.original?.eocystem ? row.original.orgStatus : row.original.status } */}
+        </span>
+      ),
+      columnFunction: [],
+    },
+    // {
+    //   id: "actions",
+    //   title: "Action",
+    //   accessorKey: "actions",
+    //   cell: ({ row }) => (
+    //     <Button
+    //       variant="default"
+    //       disabled={
+    //         loadingId === row.original.presentationId ||
+    //         (row.original.state !== ProofRequestState.presentationReceived &&
+    //           row.original?.state !== "done" &&
+    //           row.original?.state !== "abandoned")
+    //       }
+    //       className={`flex items-center justify-center ${
+    //         row.original.state !== ProofRequestState.presentationReceived &&
+    //         row.original?.state !== "done" &&
+    //         row.original?.state !== "abandoned"
+    //           ? "cursor-not-allowed opacity-50 text-base font-medium text-center"
+    //           : "text-base font-medium text-center"
+    //       }`}
+    //       onClick={() => {
+    //       }}
+    //     >
+    //       View
+    //     </Button>
+    //   ),
+    //   columnFunction: [],
+    // },
+  ];
 
   const metadata: ITableMetadata = {
     enableSelection: false,
   };
 
-  // const tableStyling: TableStyling = { metadata, columnData };
-  // const column = getColumns<any>(tableStyling);
+  const tableStyling: TableStyling = { metadata, columnData };
+  const column = getColumns<any>(tableStyling);
 
   const handleLogout = async (): Promise<void> => {
     try {
@@ -849,7 +727,7 @@ const VerificationList = (): React.JSX.Element => {
         const interval = setInterval(async () => {
           if (!localStorage.getItem(rootKey)) {
             clearInterval(interval);
-            const redirectUrl = `${process.env.NEXT_PUBLIC_CLIENT_URL}/en/${landingPage}`;
+            const redirectUrl = `${process.env.NEXT_PUBLIC_CLIENT_URL}/verificationList`;
             await signOut({
               callbackUrl: `${
                 process.env.NEXT_PUBLIC_CREDEBL_UI_PATH
@@ -869,7 +747,7 @@ const VerificationList = (): React.JSX.Element => {
         const interval = setInterval(async () => {
           if (!localStorage.getItem(rootKey)) {
             clearInterval(interval);
-            const redirectUrl = `${process.env.NEXT_PUBLIC_CLIENT_URL}/en/${landingPage}`;
+            const redirectUrl = `${process.env.NEXT_PUBLIC_CLIENT_URL}/verificationList`;
             await signOut({
               callbackUrl: `${
                 process.env.NEXT_PUBLIC_CREDEBL_UI_PATH
@@ -883,6 +761,40 @@ const VerificationList = (): React.JSX.Element => {
     }
   };
 
+   const showInvitationPopUp = () => {
+      setOpenModal(true)
+   }
+
+   const sendInvitation = async () => {
+    try {
+      setLoading(true)
+      const payload = { email }
+      const data = await postRequest(invitationsApi, payload);
+       console.log("rawg",data)
+       console.log("console data status",data?.status)
+      if (data && data?.status === HttpStatusCode.Created){
+         setMessage(data.data.message)
+         handleShowAlert()
+            console.log("data received")
+         fetchInvitations()
+            console.log("fetch invitaitons")
+         setOpenModal(false)
+            console.log("done")
+       } 
+      setLoading(false);
+    } catch (error) {
+      console.log("erorrroroor", error)
+      console.error("sendInvitation",error)
+      setErrorMessage(`Failed to send invitations ${error}`)
+      handleShowAlert()
+    }
+   }
+
+   function handleShowAlert() {
+       setShowAlert(true)
+       setTimeout(()=> setShowAlert(false),2000)
+   }
+
   return (
     <>
       <div className="px-4 pt-2 p-4">
@@ -893,7 +805,7 @@ const VerificationList = (): React.JSX.Element => {
           <div className="flex gap-4 items-center">
             <Button
               variant="outline"
-              // onClick={}
+               onClick={fetchInvitations}
               className="rounded-lg mr-4 sm:mr-0 items-center mt-2 sm:mt-0"
             >
               <RefreshCw
@@ -901,7 +813,7 @@ const VerificationList = (): React.JSX.Element => {
               />
             </Button>
             <Button
-              // onClick={}
+              onClick={showInvitationPopUp}
               className="flex items-center gap-2 px-4 py-2 text-base font-medium"
               disabled={loading}
             >
@@ -911,28 +823,30 @@ const VerificationList = (): React.JSX.Element => {
           </div>
         </div>
         <div className="relative min-h-[400px]">
-          {/*<DataTable
+          <DataTable
             isLoading={tableLoading}
             placeHolder="Search"
             data={
-              Array.isArray(verificationTableData) ? verificationTableData : []
+              Array.isArray(ecosystemList) ? ecosystemList : []
             }
             columns={column}
             index={"id"}
-            pageIndex={paginationParameter.currentPage}
+            pageIndex={paginationParameter.pageNumber}
             pageSize={paginationParameter.pageSize || 10}
-            pageCount={paginationParameter.lastPage}
+            pageCount={paginationParameter.totalPages}
             onPageChange={(index) => {
+              console.log("index",index)
               setPaginationParameter((prev) => ({
                 ...prev,
-                currentPage: index,
+                pageNumber: index,
               }));
             }}
             onPageSizeChange={(size) => {
+              console.log("page ize", size)
               setPaginationParameter((prev) => ({
                 ...prev,
                 pageSize: size,
-                currentPage: 0,
+                pageNumber: 0,
               }));
             }}
             onSearchTerm={(term) =>
@@ -941,7 +855,7 @@ const VerificationList = (): React.JSX.Element => {
                 search: term,
               }))
             }
-          />*/}
+          />
         </div>
       </div>
       {/* {userData && (
@@ -963,68 +877,48 @@ const VerificationList = (): React.JSX.Element => {
         // />
       )} */}
 
-      {isOrgLoaded && showOrgRegistrationModal && (
-        <Modal
-          closePopup={() => setShowOrgRegistrationModal(false)}
-          showCloseButton={false}
-          className="w-full max-w-3xl rounded-2xl border sm:w-3/4 2xl:w-1/2"
-        >
-          <div className="mt-6 flex flex-col items-center justify-center px-4 pb-8 text-center">
-            <h2 className="text-md font-semibold text-destructive 2xl:text-lg">
-              You’re not part of any organization yet.
-            </h2>
+        {showAlert && (errorMessage || message) && (
+          <Alert
+            type={message ? "success" : "failure"}
+            message={message || errorMessage}
+            closeAlert={() => setShowAlert(false)}
+          />
+        )}
+        {openModal &&
+           <Modal
+              closePopup={() => setOpenModal(false)}
+              showCloseButton={true}
+              className="w-full max-w-3xl  border sm:w-1/4 2xl:w-1/3"
+           >
+              <div className="mt-6 flex flex-col items-start justify-start px-4 pb-8 text-center">
+                 <h2 className="font-semibold text-lg">
+                    Invite Ecosystem Lead
+                 </h2>
 
-            <p className="mt-3 text-base 2xl:text-lg">
-              To continue with Sovio Verifier, you need to either join an
-              existing organization or create a new one.
-            </p>
+                 <p className="mt-3 text-muted-foreground">
+                    Email
+                 </p>
+                 <Input
+                    className="max-w-sm"
+                    type={"email"}
+                    name="email"
+                    id="email"
+                    placeholder={"Enter email"}
+                    value={email}
+                    onChange={(event) => setEmail(event.target.value)}
+                 />
 
-            <p className="mt-2 text-base text-muted-foreground 2xl:text-md">
-              This helps us associate your credentials and actions with the
-              right institution.
-            </p>
-
-            <p className="mt-6 text-base font-semibold 2xl:text-lg">
-              Currently, no organization is found.
-            </p>
-
-            <p className="mt-2 text-base text-muted-foreground 2xl:text-md">
-              Please create an organization to proceed with Sovio Verifier
-              services.
-            </p>
-
-            <div className="mt-8 flex justify-center gap-4">
-              <Button
-                className="flex items-center gap-2 px-4 py-2 text-base font-medium"
-                onClick={() =>
-                  (window.location.href = `${
-                    process.env.NEXT_PUBLIC_CREDEBL_UI_PATH
-                  }/create-organization?redirectTo=${encodeURIComponent(
-                    redirectUrl
-                  )}&clientAlias=${process.env.NEXT_PUBLIC_CLIENT_NAME}`)
-                }
-              >
-                Create Organization
-              </Button>
-            </div>
-            <div className="my-2 flex w-[50%] items-center justify-center gap-2 md:my-6 md:gap-4">
-              <hr className="border-border flex-grow border-2 border-t" />
-            </div>
-            <div
-              className="flex justify-center gap-2 m-auto cursor-pointer"
-              onClick={handleLogout}
-            >
-              <Image
-                src={"/images/logout.svg"}
-                alt="logout"
-                width={24}
-                height={24}
-              />
-              {translate("logout")}
-            </div>
-          </div>
-        </Modal>
-      )}
+                 <div className="mt-8 flex justify-center gap-4">
+                    <Button
+                       className="flex items-center gap-2 px-4 py-2 text-base font-medium"
+                       onClick={sendInvitation}
+                    >
+                       Send
+                    </Button>
+                 </div>
+              </div>
+           </Modal>
+        }
 
       {showWalletInfoModal && (
         <Modal
@@ -1090,7 +984,7 @@ const VerificationList = (): React.JSX.Element => {
                 width={24}
                 height={24}
               />
-              {translate("logout")}
+                     Logout
             </div>
           </div>
         </Modal>
@@ -1099,4 +993,4 @@ const VerificationList = (): React.JSX.Element => {
   );
 };
 
-export default VerificationList;
+export default InvitationsList;

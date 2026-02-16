@@ -7,7 +7,6 @@ import Image from "next/image";
 import Link from "next/link";
 import React from "react";
 import { usePathname } from "next/navigation";
-import { useTranslations } from "next-intl";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -16,7 +15,6 @@ interface SidebarProps {
 
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
   const pathname = usePathname();
-  const translate = useTranslations("SideBar");
   const logo = process.env.NEXT_PUBLIC_LOGO;
   
   if (!logo) {
@@ -39,6 +37,22 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
       {/* Menu */}
       <nav className="px-4 space-y-1 divide-y divide-gray-200">
         <ul className="space-y-2 pb-2">
+          {/* Payment History */}
+          <li>
+            <Link
+              href="/dashboard"
+              className={`flex items-center gap-3 p-2 text-base rounded-lg transition hover:bg-faintBlue ${
+                pathname.includes("/dashboard")
+                  ? "bg-primary text-primary-foreground duration-200 ease-linear hover:bg-primary/90 hover:text-primary-foreground active:bg-primary/90 active:text-primary-foreground font-semibold"
+                  : "text-sidebar-foreground hover:bg-sidebar-accent"
+              }`}
+            >
+              <LayoutDashboard strokeWidth={1.5} />
+              <span className="text-sm">
+                Dashboard
+              </span>
+            </Link>
+          </li>
           {/* Verification Link */}
           <li>
             <Link
@@ -56,22 +70,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
             </Link>
           </li>
 
-          {/* Payment History */}
-          <li>
-            <Link
-              href="/dashboard"
-              className={`flex items-center gap-3 p-2 text-base rounded-lg transition hover:bg-faintBlue ${
-                pathname.includes("/dashboard")
-                  ? "bg-primary text-primary-foreground duration-200 ease-linear hover:bg-primary/90 hover:text-primary-foreground active:bg-primary/90 active:text-primary-foreground font-semibold"
-                  : "text-sidebar-foreground hover:bg-sidebar-accent"
-              }`}
-            >
-              <LayoutDashboard strokeWidth={1.5} />
-              <span className="text-sm">
-                Dashboard
-              </span>
-            </Link>
-          </li>
         </ul>
       </nav>
     </div>

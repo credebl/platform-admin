@@ -7,7 +7,6 @@ import { ChevronRight, MoreHorizontal } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useLocaleRouter } from '@/utils/useLocalizedRouter'
 import { usePathname } from 'next/navigation'
-import { useTranslations } from "next-intl";
 
 const Breadcrumb = React.forwardRef<
   HTMLElement,
@@ -99,14 +98,13 @@ const UseBreadcrumb: React.FC = () => {
     (segment) => segment && segment !== 'en' && segment !== 'fr' && segment !== 'pt',
   )
 
-  const translate = useTranslations("breadcrumbs");
   const breadcrumbData = pathSegments.map((segment, index) => {
     const path = `/${pathSegments.slice(0, index + 1).join('/')}`
     const displayName = segment
     return { path, displayName }
   })
 
-  breadcrumbData.unshift({ path: '/verificationList', displayName: translate('home') })
+  breadcrumbData.unshift({ path: '/verificationList', displayName: 'home' })
   return (
     <div className="mb-4">
       <Breadcrumb>

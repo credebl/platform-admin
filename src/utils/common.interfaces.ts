@@ -31,6 +31,15 @@ export enum ProofRequestState {
   done = "done",
   abandoned = "abandoned",
 }
+
+export enum invitationState {
+   ACTIVE = "ACTIVE",
+   PENDING = "pending",
+   ACCEPTED = "accepted",
+   REJECTED = "rejected",
+   INACTIVE = "INACTIVE",
+}
+
 export enum ProofRequestStateUserText {
   requestSent = "Requested",
   requestReceived = "Received",

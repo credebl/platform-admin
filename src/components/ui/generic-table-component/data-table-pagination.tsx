@@ -78,8 +78,10 @@ export function DataTablePagination<TData>({
           <Button
             variant="outline"
             className="h-8 w-8 p-0"
-            onClick={() =>
+            onClick={() =>{
+                     console.log("pagination button", table.getState().pagination.pageIndex)
               table.setPageIndex(table.getState().pagination.pageIndex + 1)
+                  }
             }
             disabled={!table.getCanNextPage()}
           >

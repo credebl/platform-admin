@@ -22,6 +22,7 @@ export const verifyEmail = `${basePath}/auth/verify`
 export const signUpApi = `${basePath}/auth/signup`
 export const invitationsApi = `${basePath}/invitations`
 export const refreshTokenUrl = `${basePath}/auth/refresh-token`
+export const dashboardData = `${basePath}/ecosystem/count/dashboard`
 //Regx
 export const emailRegex = /(\.[a-zA-Z]{2,})$/
 export const passwordRegex = /^(?=.*[0-9])(?=.*[A-Z])(?=.*[a-z])(?=.*[-!@$%^*])(?=.*[!"$%*,-.\/:;=@^_])[a-zA-Z0-9!"$%*,-.\/:;=@^_]{8,}$/

@@ -8,7 +8,7 @@ let refreshPromise: Promise<void> | null = null
 
 export async function logoutUser(): Promise<void> {
   const rootKey = "persist:root";
-  const redirectUrl = `${process.env.NEXT_PUBLIC_CLIENT_URL}/en/${landingPage}`;
+  const redirectUrl = `${process.env.NEXT_PUBLIC_CLIENT_URL}/${landingPage}`;
   if (localStorage.getItem(rootKey)) {
     localStorage.removeItem(rootKey);
   }
