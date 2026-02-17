@@ -20,17 +20,6 @@ export interface IEmptyListMessage {
   onClick?: () => void;
   noExtraHeight?: boolean;
 }
-export enum ProofRequestState {
-  presentationReceived = "presentation-received",
-  offerReceived = "offer-received",
-  declined = "declined",
-  requestSent = "request-sent",
-  requestReceived = "request-received",
-  credentialIssued = "credential-issued",
-  credentialReceived = "credential-received",
-  done = "done",
-  abandoned = "abandoned",
-}
 
 export enum invitationState {
    ACTIVE = "ACTIVE",
@@ -40,66 +29,42 @@ export enum invitationState {
    INACTIVE = "INACTIVE",
 }
 
-export enum ProofRequestStateUserText {
-  requestSent = "Requested",
-  requestReceived = "Received",
-  done = "Verified",
-  abandoned = "Declined",
-}
-export interface userData {
-  [key: string]: string;
-  schemaId: string;
-  certificateTemplate: string;
-}
-
-export interface IProofRequestDetails {
-  verifyLoading?: boolean;
-  openModal: boolean;
-  closeModal: () => void;
-  onSuccess: () => void;
-  requestId: string;
-  userData?: userData[];
-  view?: boolean;
-  userRoles?: string[];
-  stateValue: string;
-  issuerHolderDetails: IVerificationDetails
-}
-
-export interface IVerificationDetails {
-  holder: string;
-  issuer: string;
-}
-
-export interface showDetails {
-  showModal: boolean
-  setShowModal: (value: boolean) => void
-  threadId: string
-  content: any
-  issuerHolderDetails: IVerificationDetails
-  animation: boolean
-}
-
-export interface IPhoneNo {
-  handleChangeInput: (event: React.ChangeEvent<HTMLInputElement>) => void
-  activeCodeValue: string
-  setActiveCodeValue: (val: string) => void
-}
-
-export interface OrgAgentdetails {
-  orgDid: string
-}
-export interface EmailVerifyData {
-  verificationCode: string,
-  email: string
-}
-export interface UserRegistartion {
-  firstName: string
-  lastName: string
-  password: string
-  confirmPassword: string
-}
-
 export interface ErrorResponse {
   message?: string;
   [key: string]: any; // To handle unexpected properties
+}
+
+export interface IAlertComponent {
+  message: string | null
+  type: string
+  viewButton?: boolean
+  path?: string
+  onAlertClose: () => void
+}
+
+export interface Session {
+  id: string
+  sessionToken: string
+  userId: string
+  expires: number
+  refreshToken: string
+  createdAt: string
+  updatedAt: string
+  accountId: string
+  sessionType: string
+  expiresAt: string
+  clientInfo: clientInfo
+}
+
+export interface clientInfo {
+  os: string
+  browser: string
+  deviceType: string
+  rawDetail: string
+  ip: string
+}
+
+export enum SESSION_TYPE {
+  USER = 'user-session',
+  ORGANIZATION = 'organization-session',
 }

@@ -1,6 +1,6 @@
 // eslint-disable-next-line camelcase
 
-import { Settings } from "./Settings"
+import  Settings  from "./Settings"
 
 
 const Page = (): React.JSX.Element => {

@@ -104,7 +104,7 @@ const UseBreadcrumb: React.FC = () => {
     return { path, displayName }
   })
 
-  breadcrumbData.unshift({ path: '/verificationList', displayName: 'home' })
+  breadcrumbData.unshift({ path: '/dashboard', displayName: 'home' })
   return (
     <div className="mb-4">
       <Breadcrumb>

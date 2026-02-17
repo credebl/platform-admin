@@ -10,10 +10,10 @@ const handleLogout = async (): Promise<void> => {
   try {
     // Note : need to discuss when screen is ideal and token expired itself below API throw 401
     // so because of this session will not deleted from database
-    const { verifier } = store.getState();
-    const token = verifier.verifierToken;
+    const { session } = store.getState();
+    const token = session.token;
     const payload = {
-      sessions: [verifier.sessionId],
+      sessions: [session.sessionId],
     };
     const config = {
       headers: {
@@ -66,15 +66,15 @@ const handleLogout = async (): Promise<void> => {
 
 axios.interceptors.request.use(
   async (config) => {
-    const { verifier } = store.getState()
-    if (!verifier?.verifierToken || !verifier.refreshToken) {
-      console.log("verifier token",verifier)
+    const { session } = store.getState()
+    if (!session?.token || !session.refreshToken) {
+      console.log("session token", session)
       return config
     }
     try {
       const currentTime = Math.floor(Date.now() / 1000)
-      const token = verifier.verifierToken
-      const { refreshToken } = verifier
+      const token = session.token
+      const { refreshToken } = session
       const refreshTokenExp = jwtDecode<JwtPayload>(refreshToken).exp
       const isRefreshTokenExpired = refreshTokenExp
         ? refreshTokenExp - currentTime < 1
@@ -88,7 +88,7 @@ axios.interceptors.request.use(
       if (isExpired && !isRefreshTokenExpired) {
         console.log("gen new token")
         await generateAccessToken()
-        const newToken = store.getState().verifier?.verifierToken
+        const newToken = store.getState().session?.token
         if (newToken) {
           config.headers.Authorization = `Bearer ${newToken}`
         }

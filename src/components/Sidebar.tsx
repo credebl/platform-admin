@@ -37,7 +37,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
       {/* Menu */}
       <nav className="px-4 space-y-1 divide-y divide-gray-200">
         <ul className="space-y-2 pb-2">
-          {/* Payment History */}
           <li>
             <Link
               href="/dashboard"
@@ -53,7 +52,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
               </span>
             </Link>
           </li>
-          {/* Verification Link */}
           <li>
             <Link
               href="/ecosystems"

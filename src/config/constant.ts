@@ -4,32 +4,24 @@ export const paymentBasePath = process.env.NEXT_PUBLIC_PAYMENT_GATEWAY_ENDPOINT
 export const signInApi = `${basePath}/auth/signin`
 export const fetchSessionDetails = `${basePath}/auth/sessionDetails`
 export const signOutApi = `${basePath}/auth/signout`
-export const fetchVerificationList = `${basePath}/orgs/#/proofs`
-export const fetchProofRequestDetails = `${basePath}/orgs/#/verified-proofs`
 export const sendProofRequest = `${basePath}/orgs/#/proofs/oob`
 export const getUserProfileApi = `${basePath}/users/profile`
-export const verifyProofRequest = `${basePath}/orgs/#/proofs/proofId/verify`
-export const getOrganizationListApi = `${basePath}/orgs`
-export const getOrganizationsApi = `${basePath}/orgs`
-export const registerOrganizationApi = `${basePath}/orgs`
-export const getPaymentHistoryApi = `${paymentBasePath}/v1/payment/payment`
-export const getSchemaDetails = `${basePath}/v1/platform/schemas`
-export const createorganizationWallet = `${basePath}/orgs/orgId/agents/wallet`
-export const webhookUrlConfig = `${basePath}/v1/webhooks/orgs/orgId/register`
 export const checkUserExists = `${basePath}/users`
-export const sendVerificationEmail = `${basePath}/auth/verification-mail`
 export const verifyEmail = `${basePath}/auth/verify`
 export const signUpApi = `${basePath}/auth/signup`
 export const invitationsApi = `${basePath}/invitations`
 export const refreshTokenUrl = `${basePath}/auth/refresh-token`
 export const dashboardData = `${basePath}/ecosystem/count/dashboard`
+export const ecosystemStatus = `${basePath}/ecosystem-status`
+export const updateEcosystemStatusApi = `${basePath}/config/ecosystem`
+export const userSessions= `${basePath}/auth/userId:/sessions`
+export const deleteSession= `${basePath}/auth/sessionId:/sessions`
 //Regx
 export const emailRegex = /(\.[a-zA-Z]{2,})$/
 export const passwordRegex = /^(?=.*[0-9])(?=.*[A-Z])(?=.*[a-z])(?=.*[-!@$%^*])(?=.*[!"$%*,-.\/:;=@^_])[a-zA-Z0-9!"$%*,-.\/:;=@^_]{8,}$/
 
 export enum routes {
-	VERIFICATION_LISTS = "/verificationList",
-	SIGN_IN = "/signIn"
+	DASHBOARD = "/dashboard",
 }
 
 export enum proofRequestState {
@@ -51,12 +43,11 @@ export const credentialIssuerImg = '/images/Issuer.png'
 export const credentialHolderImg = '/images/Holder.svg'
 export const credentialSignatureImg = '/images/CredentialSignature.png'
 export const credentialDetailImg = '/images/CredentialDetails.png'
-export const verificationTickFill = "/images/inverted_tick.png"
 export const greenCheck = "/images/green-check.gif"
 
 //session
 
-export const dashboard = '/verificationList'
+export const dashboard = '/dashboard'
 export const sessionExcludedPaths = [
 	'/en/signIn',
 	'/fr/signIn',
@@ -106,25 +97,16 @@ export const phoneCodes = [{
 	"name": "India"
 },]
 
-export const verifiedImage = {
-	width: 22,
-	height: 11
-}
-export const verifiedTickImage = {
-	width: 20,
-	height: 20
-}
-export const copySize = 20
-export const stamp = {
-	width: 120,
-	height: 120
-}
-export const playerStyle = { height: '20px', width: '20px' }
-export const svgXmlns = 'http://www.w3.org/2000/svg'
-export const stampImage = "/images/verified_stamp_vector.png"
+
 
 export const serializationCondition = ['array', 'object']
 
-export const generateQRCodeStringColor = '#ffffff'
 
-export const landingPage = 'ecosystems'
+export const landingPage = 'dashboard'
+
+export const confirmationMessages = {
+  deletePendingInvitationConfirmation:
+    'Would you like to proceed? Keep in mind that this action cannot be undone.',
+  sureConfirmation: 'Yes, I am sure',
+  cancelConfirmation: 'No, cancel',
+}

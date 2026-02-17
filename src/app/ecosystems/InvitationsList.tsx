@@ -4,53 +4,34 @@ import {
   CallbackFunction,
   ColumnActionName,
   ITableMetadata,
-  SortActions,
   TableStyling,
   getColumns,
 } from "@/components/ui/generic-table-component/columns";
 import {
     invitationState,
-  ProofRequestState,
-  ProofRequestStateUserText,
 } from "../../utils/common.interfaces";
-import React, { useEffect, useMemo, useState } from "react";
-import { ScanSvg, VerifySvg, ViewSvg } from "@/config/SVG";
-import { dateConversion, decryptValue } from "@/config/common.functions";
+import React, { useEffect, useState } from "react";
+import { dateConversion } from "@/config/common.functions";
 import {
-  fetchProofRequestDetails,
-  fetchVerificationList,
   invitationsApi,
   signOutApi,
-  webhookUrlConfig,
 } from "@/config/constant";
 import { getRequest, postRequest } from "@/config/apiCalls";
 
 import { Button } from "@/components/ui/button";
 import { CellContext } from "@tanstack/react-table";
 import { DataTable } from "@/components/ui/generic-table-component/data-table";
-import Image from "next/image";
-import Loader from "@/components/Loader";
 import Modal from "@/components/Modal";
-import ProofRequest from "@/components/ProofRequestPopup";
 import { RefreshCw } from "lucide-react";
-import { Tooltip } from "react-tooltip";
-import { format } from "date-fns";
 import { signOut } from "next-auth/react";
 import { useAppSelector } from "@/lib/hooks";
-import { useLocaleRouter } from "@/utils/useLocalizedRouter";
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import Alert from "@/components/alert";
 import { HttpStatusCode } from "axios";
+import { AlertComponent } from "@/components/AlertComponent";
+import { TooltipContent, TooltipProvider, TooltipTrigger, Tooltip } from "@/components/ui/tooltip";
 
-const initialPageState = {
-  pageSize: 10,
-  pageNumber: 1,
-  search: "",
-  sortBy: "createDateTime",
-  sortingOrder: "desc",
-  allSearch: "",
-};
 
 interface PageParameter {
   pageNumber: number;
@@ -79,40 +60,20 @@ export interface IColumnData {
 }
 
 const InvitationsList = (): React.JSX.Element => {
-  const router = useRouter();
   const [ecosystemList, setEcosystemList] = useState<any>([]);
-  const [listAPIParameter, setListAPIParameter] =
-    useState(initialPageState);
   const [email, setEmail] = useState('');
   const [openModal, setOpenModal] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
-  const [requestId, setRequestId] = useState<string>("");
-  const [userData, setUserData] = useState(null);
   const [tableLoading, setTableLoading] = useState<boolean>(false);
-  const [view, setView] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [showAlert, setShowAlert] = useState(false);
- const [message, setMessage] = useState('')
-  const [showOrgRegistrationModal, setShowOrgRegistrationModal] =
-    useState(false);
-  const [stateValue, setStateValue] = useState("");
-  const [loadingId, setLoadingId] = useState<string | null>(null);
-  const [showWalletInfoModal, setShowWalletInfoModal] = useState(false);
-  const sessionId = useAppSelector((state) => state.verifier.sessionId);
+  const [message, setMessage] = useState('')
+  const sessionId = useAppSelector((state) => state.session.sessionId);
 
-  const { push } = useLocaleRouter();
 
-  const verifierAccessToken = useAppSelector(
-    (state) => state.verifier.verifierToken
+  const accessToken = useAppSelector(
+    (state) => state.session.token
   );
-
-  const selectedOrg = useAppSelector(
-    (state) => state.organization.selectedOrganization
-  );
-  const isOrgLoaded = useAppSelector((state) => state.organization.isOrgLoaded);
-  const formatDate = (dateString: string) => {
-    return format(new Date(dateString), "MMMM d, yyyy hh:mm:ss a");
-  };
 
   const [paginationParameter, setPaginationParameter] = useState<PageParameter>(
     {
@@ -130,368 +91,9 @@ const InvitationsList = (): React.JSX.Element => {
     }
   );
 
-  const [verificationTableData, setVerificationTableData] = useState<
-    ITableMetadata | []
-  >([]);
 
-  const config = {
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${verifierAccessToken}`,
-    },
-  };
+  const redirectUrl = `${process.env.NEXT_PUBLIC_CLIENT_URL}/dashboard`;
 
-  const redirectUrl = `${process.env.NEXT_PUBLIC_CLIENT_URL}/ecosystems`;
-
-  // const webhookURLConfig = async (orgId: string) => {
-  //   try {
-  //     if (orgId && process.env.NEXT_PUBLIC_WEBHOOK_URL) {
-  //       const url = webhookUrlConfig.replace("orgId", orgId);
-  //       const payload = {
-  //         webhookUrl: process.env.NEXT_PUBLIC_WEBHOOK_URL,
-  //       };
-  //       await postRequest(url, payload, config);
-  //       setLoading(false);
-  //       setShowOrgRegistrationModal(false);
-  //     } else {
-  //       setLoading(false);
-  //       setShowAlert(true);
-  //       setErrorMessage(translate("webhookConfigError"));
-  //       console.error("Error in webhook url configration");
-  //     }
-  //   } catch (error) {
-  //     console.error("Error in webhook url configration");
-  //     setLoading(false);
-  //     setShowAlert(true);
-  //     setErrorMessage(translate("webhookConfigError"));
-  //   }
-  // };
-
-  // useEffect(() => {
-  //   const handleOrgSelection = async () => {
-  //     if (!selectedOrg) {
-  //       setShowOrgRegistrationModal(true);
-  //       setShowWalletInfoModal(false);
-  //       return;
-  //     }
-
-  //     setShowOrgRegistrationModal(false);
-  //     if (selectedOrg?.orgAgent?.length > 0) {
-  //       // await webhookURLConfig(selectedOrg.orgId);
-  //       setShowWalletInfoModal(false);
-  //     }
-
-  //     if (selectedOrg?.orgAgent?.length === 0) {
-  //       setShowWalletInfoModal(true);
-  //     }
-  //   };
-
-  //   handleOrgSelection();
-  //   fetchVerificationData(listAPIParameter, true);
-  // }, [selectedOrg]);
-
-  // const fetchVerificationData = (
-  //   listAPIParameter: any,
-  //   isPageLoading: boolean
-  // ) => {
-  //   if (isPageLoading) {
-  //     setLoading(true);
-  //   } else {
-  //     setTableLoading(true);
-  //   }
-  //   if (selectedOrg && verifierAccessToken) {
-  //     const proofRequestUrl = fetchVerificationList.replace(
-  //       "#",
-  //       selectedOrg.orgId
-  //     );
-  //     const config = {
-  //       headers: {
-  //         "Content-Type": "application/json",
-  //         Authorization: `Bearer ${verifierAccessToken}`,
-  //       },
-  //     };
-  //     getRequest(
-  //       `${proofRequestUrl}?pageSize=${
-  //         paginationParameter.pageSize
-  //       }&pageNumber=${paginationParameter.currentPage + 1}&sortBy=${
-  //         paginationParameter.sortOrder
-  //       }&sortField=${paginationParameter.sortBy}&searchByText=${
-  //         paginationParameter.search
-  //       }`,
-  //       {},
-  //       config.headers
-  //     )
-  //       .then((response) => {
-  //         if (response?.data.data.data.length > 0) {
-  //           response?.data.data.data.map((record: any) => ({
-  //             presentationId: record.presentationId,
-  //             emailId: record.emailId,
-  //             isEncrypted: isEncrypted(record.emailId),
-  //           }));
-  //           setVerificationTableData(response?.data.data.data);
-  //           generateVerificationDetails(response?.data.data.data);
-  //           const {
-  //             totalItems,
-  //             nextPage,
-  //             lastPage,
-  //             hasNextPage,
-  //             hasPreviousPage,
-  //             previousPage,
-  //           } = response?.data.data;
-  //           setPaginationParameter((prevState) => ({
-  //             ...prevState,
-  //             totalItems: totalItems,
-  //             hasNextPage: hasNextPage,
-  //             hasPreviousPage: hasPreviousPage,
-  //             nextPage: nextPage,
-  //             previousPage: previousPage,
-  //             lastPage: lastPage,
-  //           }));
-  //           setTotalItem(totalItems);
-  //         } else {
-  //           setVerificationTableData([]);
-  //           setVerificationList([]);
-  //         }
-  //       })
-  //       .catch((error) => {
-  //         console.error("Error fetching verification data:", error);
-  //         setVerificationList([]);
-  //       })
-  //       .finally(() => {
-  //         if (isPageLoading) {
-  //           setLoading(false);
-  //         } else {
-  //           setTableLoading(false);
-  //         }
-  //       });
-  //   } else {
-  //     if (isPageLoading) {
-  //       setLoading(false);
-  //     } else {
-  //       setTableLoading(false);
-  //     }
-  //   }
-  // };
-
-  // const openProofRequestModel = (
-  //   flag: boolean,
-  //   requestId: string,
-  //   state: string
-  // ) => {
-  //   setRequestId(requestId);
-  //   setOpenModal(flag);
-  //   setStateValue(state);
-  //   setView(state === "done");
-  // };
-
-  // Cache decrypted emails to avoid redundant decryption
-  // const decryptedEmailCache = useMemo(() => new Map<string, string>(), []);
-
-  // const getDecryptedEmail = (emailId: string): string => {
-  //   if (!emailId) return translate("notAvailable");
-  //   if (decryptedEmailCache.has(emailId)) {
-  //     return decryptedEmailCache.get(emailId)!;
-  //   }
-  //   const isEnc = isEncrypted(emailId);
-  //   const result = isEnc ? decryptValue(emailId) : emailId;
-  //   decryptedEmailCache.set(emailId, result);
-  //   return result;
-  // };
-
-  // const generateVerificationDetails = (verificationDetailsResponse: any) => {
-  //   const generatedVerificationList = verificationDetailsResponse?.map(
-  //     (record: any) => {
-  //       const email = getDecryptedEmail(record.emailId);
-  //       return {
-  //         data: [
-  //           {
-  //             data: (
-  //               <div
-  //                 data-tooltip-id={`tooltip-presentationId-${record.presentationId}`}
-  //                 data-tooltip-content={record.presentationId}
-  //                 className="cursor-pointer"
-  //               >
-  //                 {record.presentationId
-  //                   ? record.presentationId.split("-")[0]
-  //                   : translate("notAvailable")}
-  //                 <Tooltip
-  //                   id={`tooltip-presentationId-${record.presentationId}`}
-  //                   place="top"
-  //                 />
-  //               </div>
-  //             ),
-  //           },
-  //           {
-  //             data: record.emailId ? (
-  //               <span
-  //                 data-tooltip-id={`tooltip-email-${record.presentationId}`}
-  //                 data-tooltip-content={email}
-  //                 className="cursor-pointer"
-  //               >
-  //                 {email}
-  //                 <Tooltip
-  //                   id={`tooltip-email-${record.presentationId}`}
-  //                   place="top"
-  //                 />
-  //               </span>
-  //             ) : (
-  //               translate("notAvailable")
-  //             ),
-  //           },
-  //           {
-  //             data: record.schemaName
-  //               ? record.schemaName
-  //               : translate("notAvailable"),
-  //           },
-  //           {
-  //             data: record.issuanceEntity ? (
-  //               <span
-  //                 data-tooltip-id={`tooltip-issuer-${record.presentationId}`}
-  //                 data-tooltip-content={record.issuanceEntity}
-  //                 className="cursor-pointer"
-  //               >
-  //                 {record.issuanceEntity}
-  //                 <Tooltip
-  //                   id={`tooltip-issuer-${record.presentationId}`}
-  //                   place="top"
-  //                 />
-  //               </span>
-  //             ) : (
-  //               translate("notAvailable")
-  //             ),
-  //           },
-  //           {
-  //             data: (
-  //               <div>
-  //                 <span
-  //                   data-tooltip-id={`tooltip-${record.createDateTime}`}
-  //                   data-tooltip-content={formatDate(record.createDateTime)}
-  //                   className="cursor-pointer"
-  //                 >
-  //                   {dateConversion(record.createDateTime)}
-  //                 </span>
-  //                 <Tooltip
-  //                   id={`tooltip-${record.createDateTime}`}
-  //                   place="top"
-  //                 />
-  //               </div>
-  //             ),
-  //           },
-  //           {
-  //             data: (
-  //               <span
-  //                 className={`text-xs font-medium sm:mr-0 md:mr-2 min-[320]:px-1 sm:px-0 lg:px-0.5 py-0.5 rounded-md flex justify-center min-[320]:w-full 2xl:w-8/12 ${
-  //                   record?.state === ProofRequestState.requestSent &&
-  //                   "bg-[var(--accent)] text-[var(--accent-foreground)] border border-[var(--accent)]"
-  //                 } ${
-  //                   record?.state === ProofRequestState.done &&
-  //                   "bg-[var(--success)] text-[var(--success-foreground)] border border-[var(--success)]"
-  //                 } ${
-  //                   record?.state === ProofRequestState.abandoned &&
-  //                   "bg-[var(--failed)] text-[var(--failed-foreground)] border border-[var(--failed)]"
-  //                 } ${
-  //                   record?.state === ProofRequestState.presentationReceived &&
-  //                   "bg-[var(--secondary)] text-[var(--foreground)] border border-[var(--secondary)]"
-  //                 }`}
-  //               >
-  //                 {record?.state === ProofRequestState.requestSent
-  //                   ? ProofRequestStateUserText.requestSent
-  //                   : record?.state === ProofRequestState.presentationReceived
-  //                   ? ProofRequestStateUserText.requestReceived
-  //                   : record?.state === ProofRequestState.done
-  //                   ? ProofRequestStateUserText.done
-  //                   : record?.state === ProofRequestState.abandoned
-  //                   ? ProofRequestStateUserText.abandoned
-  //                   : ""}
-  //               </span>
-  //             ),
-  //           },
-  //           {
-  //             data: (
-  //               <Button
-  //                 variant="default"
-  //                 disabled={
-  //                   loadingId === record.presentationId ||
-  //                   (record.state !== ProofRequestState.presentationReceived &&
-  //                     record?.state !== "done" &&
-  //                     record?.state !== "abandoned")
-  //                 }
-  //                 onClick={() => {
-  //                   if (
-  //                     record.state === ProofRequestState.presentationReceived ||
-  //                     record?.state === "done"
-  //                   ) {
-  //                     setLoadingId(record.presentationId);
-  //                     setVerificationDetials({
-  //                       holder: getDecryptedEmail(record.emailId),
-  //                       issuer: record.issuanceEntity
-  //                         ? record.issuanceEntity
-  //                         : translate("not_available"),
-  //                     });
-  //                     openProofRequestModel(
-  //                       true,
-  //                       record?.presentationId,
-  //                       record?.state
-  //                     );
-  //                     getProofPresentationData(record?.presentationId).finally(
-  //                       () => setLoadingId(null)
-  //                     );
-  //                   }
-  //                 }}
-  //                 className={`${
-  //                   record.state !== ProofRequestState.presentationReceived &&
-  //                   record?.state !== "done" &&
-  //                   record?.state !== "abandoned"
-  //                     ? "cursor-not-allowed opacity-50 text-muted-foreground"
-  //                     : "text-primary-foreground"
-  //                 } flex items-center justify-center gap-2 text-base font-medium text-center bg-primary rounded-md focus:ring-4 focus:ring-[var(--ring)] sm:w-auto`}
-  //               >
-  //                 {loadingId === record.presentationId ? (
-  //                   <Loader />
-  //                 ) : record?.state === "done" ? (
-  //                   <div className="flex items-center">
-  //                     <ViewSvg />
-  //                     <span className="pl-1">{translate("view")}</span>
-  //                   </div>
-  //                 ) : record?.state === "abandoned" ? (
-  //                   <>
-  //                     <p
-  //                       className="flex items-center justify-center"
-  //                       data-tooltip-id="my-tooltip"
-  //                       data-tooltip-content={
-  //                         record.errorMessage?.split(":")[1].trim() ||
-  //                         translate("notAnyReason")
-  //                       }
-  //                     >
-  //                       <Image
-  //                         src="/images/assets/DeclinedReason.png"
-  //                         alt={translate("declinedReasonImg")}
-  //                         width={30}
-  //                         height={30}
-  //                       />
-  //                       <span>{translate("declined_reason")}</span>
-  //                     </p>
-  //                     <Tooltip
-  //                       id="my-tooltip"
-  //                       place="top"
-  //                       className="tooltip-custom"
-  //                     />
-  //                   </>
-  //                 ) : (
-  //                   <div className="flex items-center">
-  //                     <VerifySvg />
-  //                     <span>{translate("verify")}</span>
-  //                   </div>
-  //                 )}
-  //               </Button>
-  //             ),
-  //           },
-  //         ],
-  //       };
-  //     }
-  //   );
-  //   setVerificationList(generatedVerificationList);
-  // };
 
    useEffect(() => {
       console.log("paginationParameter",paginationParameter)
@@ -501,48 +103,6 @@ const InvitationsList = (): React.JSX.Element => {
       paginationParameter.pageSize,
    ]);
 
-  // const scanToVerify = async () => {
-  //   setLoading(true);
-  //   try {
-  //     await push("/scanQrCode");
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
-
-  // const getProofPresentationData = async (proofId: string) => {
-  //   try {
-  //     const orgId = selectedOrg.orgId;
-  //     if (orgId && verifierAccessToken) {
-  //       const config = {
-  //         headers: {
-  //           "Content-Type": "application/json",
-  //           Authorization: `Bearer ${verifierAccessToken}`,
-  //         },
-  //       };
-  //       getRequest(
-  //         `${fetchProofRequestDetails.replace("#", orgId)}/${proofId}`,
-  //         {},
-  //         config.headers
-  //       )
-  //         .then((response) => {
-  //           setUserData(response?.data.data);
-  //         })
-  //         .catch((error) => {
-  //           console.error("Error in fetch single proof details", error);
-  //         });
-  //     }
-  //   } catch (error) {
-  //     console.error("Error in getProofPresentationData:", error);
-  //     throw error;
-  //   }
-  // };
-
-  // const onRefresh = () => {
-  //   decryptedEmailCache.clear();
-  //   fetchVerificationData(listAPIParameter, false); // Changed to false to use tableLoading
-  // };
-   //
   useEffect(()=> {console.log("paginaitonparametne",paginationParameter)},[paginationParameter.pageNumber])
 
   const fetchInvitations = async () => {
@@ -571,19 +131,6 @@ const InvitationsList = (): React.JSX.Element => {
     }
   ,[])
 
-  const handlePageChange = (page: number): void => {
-    setPaginationParameter((prevState) => ({
-      ...prevState,
-      currentPage: page,
-    }));
-  };
-
-  const isEncrypted = (value: string) => {
-    const result =
-      value && typeof value === "string" && value.startsWith("U2FsdGVkX1");
-    return result;
-  };
-
   const columnData: IColumnData[] = [
     {
       id: "email",
@@ -594,7 +141,7 @@ const InvitationsList = (): React.JSX.Element => {
         return (
           <>
             <span
-              className="cursor-pointer"
+              className="w-1/4 cursor-pointer"
             >
               {row.original.email}
             </span>
@@ -613,14 +160,29 @@ const InvitationsList = (): React.JSX.Element => {
         >
           {row.original?.ecosystem ?
                <div>
-                  <div className="text-[15px] mb-2"><b>{row.original?.ecosystem?.name && row.original?.ecosystem?.name[0].toUpperCase() + row.original?.ecosystem?.name.slice(1)}</b></div>
-                  <div className="max-w-sm  whitespace-normal break-words mb-2 text-muted-foreground">{100 < row.original?.ecosystem?.description.length ? row.original?.ecosystem?.description.slice(0,100) + '...' : row.original?.ecosystem?.description}</div>
+                  <div className="w-3/4 text-[15px] mb-2 text-left"><b>{row.original?.ecosystem?.name && row.original?.ecosystem?.name[0].toUpperCase() + row.original?.ecosystem?.name.slice(1)}</b></div>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div className="max-w-sm whitespace-normal break-words mb-2 text-muted-foreground cursor-default text-left">
+                          {row.original?.ecosystem?.description.length > 70
+                            ? row.original?.ecosystem?.description.slice(0, 70) + "..."
+                            : row.original?.ecosystem?.description}
+                        </div>
+                      </TooltipTrigger>
+                      
+                      <TooltipContent side="right" align="center">
+                        <p className="max-w-xs">{row.original?.ecosystem?.description}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                   <div className="text-xs text-muted-foreground">
                         <span className="font-semibold">Created : </span>
                         <span>{dateConversion(row.original?.ecosystem?.createDateTime)}</span>
                   </div>
+
                </div>
-               :'--'
+               :<div className="h-16 grid items-center">--</div>
 
           }
         </div>
@@ -633,7 +195,7 @@ const InvitationsList = (): React.JSX.Element => {
       accessorKey: "leadOranization",
       columnFunction: [],
       cell: ({ row }) => (
-        <div>
+        <div className="w-1/4">
           {row.original?.organisation?.name
             ? row.original?.organisation?.name
             : "--"}
@@ -646,7 +208,7 @@ const InvitationsList = (): React.JSX.Element => {
       accessorKey: "status",
       cell: ({ row }) => (
         <span
-          className={`text-xs font-medium min-[120px]:px-4  rounded-md flex justify-center w-fit border  
+          className={`w-1/4 text-xs font-medium min-[120px]:px-4  rounded-md flex justify-center w-fit border  
           ${row.original?.ecosystem  && row.original?.orgStatus === invitationState.INACTIVE &&
                "bg-gray-200 border border-[var(--accent)] border-opacity-90 text-muted-foreground"
                }
@@ -663,40 +225,10 @@ const InvitationsList = (): React.JSX.Element => {
             : row.original?.orgStatus === invitationState.ACTIVE
             ? invitationState.ACTIVE[0].toUpperCase() + invitationState.ACTIVE.slice(1).toLowerCase()
             :"Pending"}
-          {/* { row.original?.eocystem ? row.original.orgStatus : row.original.status } */}
         </span>
       ),
       columnFunction: [],
-    },
-    // {
-    //   id: "actions",
-    //   title: "Action",
-    //   accessorKey: "actions",
-    //   cell: ({ row }) => (
-    //     <Button
-    //       variant="default"
-    //       disabled={
-    //         loadingId === row.original.presentationId ||
-    //         (row.original.state !== ProofRequestState.presentationReceived &&
-    //           row.original?.state !== "done" &&
-    //           row.original?.state !== "abandoned")
-    //       }
-    //       className={`flex items-center justify-center ${
-    //         row.original.state !== ProofRequestState.presentationReceived &&
-    //         row.original?.state !== "done" &&
-    //         row.original?.state !== "abandoned"
-    //           ? "cursor-not-allowed opacity-50 text-base font-medium text-center"
-    //           : "text-base font-medium text-center"
-    //       }`}
-    //       onClick={() => {
-    //       }}
-    //     >
-    //       View
-    //     </Button>
-    //   ),
-    //   columnFunction: [],
-    // },
-  ];
+    }  ];
 
   const metadata: ITableMetadata = {
     enableSelection: false,
@@ -707,15 +239,13 @@ const InvitationsList = (): React.JSX.Element => {
 
   const handleLogout = async (): Promise<void> => {
     try {
-      // Note : need to discuss when screen is ideal and token expired itself below API throw 401
-      // so because of this session will not deleted from database
       const payload = {
         sessions: [sessionId],
       };
       const config = {
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${verifierAccessToken}`,
+          Authorization: `Bearer ${accessToken}`,
         },
       };
       await postRequest(signOutApi, payload, config);
@@ -727,7 +257,7 @@ const InvitationsList = (): React.JSX.Element => {
         const interval = setInterval(async () => {
           if (!localStorage.getItem(rootKey)) {
             clearInterval(interval);
-            const redirectUrl = `${process.env.NEXT_PUBLIC_CLIENT_URL}/verificationList`;
+            const redirectUrl = `${process.env.NEXT_PUBLIC_CLIENT_URL}/dashboard`;
             await signOut({
               callbackUrl: `${
                 process.env.NEXT_PUBLIC_CREDEBL_UI_PATH
@@ -747,7 +277,7 @@ const InvitationsList = (): React.JSX.Element => {
         const interval = setInterval(async () => {
           if (!localStorage.getItem(rootKey)) {
             clearInterval(interval);
-            const redirectUrl = `${process.env.NEXT_PUBLIC_CLIENT_URL}/verificationList`;
+            const redirectUrl = `${process.env.NEXT_PUBLIC_CLIENT_URL}/dashboard`;
             await signOut({
               callbackUrl: `${
                 process.env.NEXT_PUBLIC_CREDEBL_UI_PATH
@@ -763,6 +293,7 @@ const InvitationsList = (): React.JSX.Element => {
 
    const showInvitationPopUp = () => {
       setOpenModal(true)
+      setEmail('')
    }
 
    const sendInvitation = async () => {
@@ -775,29 +306,39 @@ const InvitationsList = (): React.JSX.Element => {
       if (data && data?.status === HttpStatusCode.Created){
          setMessage(data.data.message)
          handleShowAlert()
-            console.log("data received")
          fetchInvitations()
-            console.log("fetch invitaitons")
-         setOpenModal(false)
-            console.log("done")
        } 
       setLoading(false);
     } catch (error) {
-      console.log("erorrroroor", error)
-      console.error("sendInvitation",error)
-      setErrorMessage(`Failed to send invitations ${error}`)
+      setErrorMessage(`Failed to send invitation ${error}`)
       handleShowAlert()
+    }finally {
+      setOpenModal(false)
+      setLoading(false)
     }
    }
 
    function handleShowAlert() {
        setShowAlert(true)
-       setTimeout(()=> setShowAlert(false),2000)
+       setTimeout(()=> {
+        setShowAlert(false)
+        setMessage("")
+        setErrorMessage("")
+      },2000)
    }
 
   return (
     <>
       <div className="px-4 pt-2 p-4">
+        {showAlert && (errorMessage || message) && (
+         <>
+            <AlertComponent
+              type={message ? "success" : "failure"}
+              message={message || errorMessage}
+              onAlertClose={() => setShowAlert(false)}
+            />
+          </>
+        )}
         <div className="mb-4 flex justify-between flex-wrap flex-col sm:flex-row gap-4">
           <h1 className="ml-1 text-2xl font-semibold text-gray-900 sm:text-md dark:text-white mr-auto">
             Ecosystems
@@ -817,7 +358,6 @@ const InvitationsList = (): React.JSX.Element => {
               className="flex items-center gap-2 px-4 py-2 text-base font-medium"
               disabled={loading}
             >
-              {/* <ScanSvg /> */}
               Create Ecosystem Lead
             </Button>
           </div>
@@ -858,32 +398,7 @@ const InvitationsList = (): React.JSX.Element => {
           />
         </div>
       </div>
-      {/* {userData && (
-        // <ProofRequest
-        //   openModal={openModal}
-        //   closeModal={() => {
-        //     setVerificationDetials({
-        //       holder: translate("not_available"),
-        //       issuer: translate("not_available"),
-        //     });
-        //     openProofRequestModel(false, "", "");
-        //   }}
-        //   requestId={requestId}
-        //   stateValue={stateValue}
-        //   userData={userData}
-        //   view={view}
-        //   onSuccess={() => fetchVerificationData(listAPIParameter, false)}
-        //   issuerHolderDetails={verification}
-        // />
-      )} */}
 
-        {showAlert && (errorMessage || message) && (
-          <Alert
-            type={message ? "success" : "failure"}
-            message={message || errorMessage}
-            closeAlert={() => setShowAlert(false)}
-          />
-        )}
         {openModal &&
            <Modal
               closePopup={() => setOpenModal(false)}
@@ -895,16 +410,19 @@ const InvitationsList = (): React.JSX.Element => {
                     Invite Ecosystem Lead
                  </h2>
 
-                 <p className="mt-3 text-muted-foreground">
-                    Email
+                 <p className="mt-3 mb-2">
+                    Email<span className="text-red-400 font-semibold">*</span>
                  </p>
                  <Input
-                    className="max-w-sm"
-                    type={"email"}
+                    className="max-w-sm px-3"
+                    type="email"
                     name="email"
                     id="email"
                     placeholder={"Enter email"}
                     value={email}
+                    required
+                    pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}$"
+                    title="Please enter a valid email address (e.g. name@domain.com)"
                     onChange={(event) => setEmail(event.target.value)}
                  />
 
@@ -919,76 +437,6 @@ const InvitationsList = (): React.JSX.Element => {
               </div>
            </Modal>
         }
-
-      {showWalletInfoModal && (
-        <Modal
-          closePopup={() => setShowWalletInfoModal(false)}
-          showCloseButton={false}
-          className="h-3/4 w-3/4 sm:w-1/2 2xl:h-auto"
-        >
-          <div className="max-h-full w-full overflow-y-auto rounded-lg bg-card p-2 2xl:p-6">
-            {/* Banner Box */}
-            <div className="mb-6 p-5">
-              <h3 className="mb-2 text-lg font-semibold text-yellow-800">
-                Wallet Setup
-              </h3>
-              <ul className="list-disc space-y-3 pl-5 text-sm text-gray-800">
-                <li>
-                  <strong>Step 1: Wallet Configuration</strong>
-                  <br />
-                  Click on <em>`Proceed to Setup Wallet`</em> to navigate to the
-                  <em>`Setup Your Wallet`</em> section under your organization,
-                  where you can complete the wallet service configuration.
-                </li>
-                <li>
-                  <strong>Step 2: Confirm Configuration</strong>
-                  <br />
-                  Ensure the wallet has been created and properly linked to your
-                  organization.
-                </li>
-              </ul>
-              <div className="mt-4 rounded bg-yellow-100 p-3 text-sm text-yellow-800">
-                ⚠️ Completing these steps is required for secure credential
-                verification flow.
-              </div>
-            </div>
-
-            <div className="flex justify-center gap-4">
-              <Button
-                className="flex items-center gap-2 px-4 py-2 text-base font-medium"
-                onClick={() =>
-                  router.push(
-                    `${
-                      process.env.NEXT_PUBLIC_CREDEBL_UI_PATH
-                    }/agent-config?orgId=${
-                      selectedOrg.orgId
-                    }&redirectTo=${encodeURIComponent(
-                      redirectUrl
-                    )}&clientAlias=${process.env.NEXT_PUBLIC_CLIENT_NAME}`
-                  )
-                }
-              >
-                Proceed to Setup Wallet
-              </Button>
-            </div>
-            <div className="my-2 flex w-[50%] items-center justify-center gap-2 md:my-6 md:gap-4 m-auto">
-              <hr className="border-border flex-grow border-2 border-t" />
-            </div>
-            <div
-              className="flex justify-center gap-2 m-auto cursor-pointer"
-              onClick={handleLogout}
-            >
-              <Image
-                src={"/images/logout.svg"}
-                alt="logout"
-                width={24}
-                height={24}
-              />
-                     Logout
-            </div>
-          </div>
-        </Modal>
-      )}
     </>
   );
 };

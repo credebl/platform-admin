@@ -5,6 +5,7 @@ import StoreProvider from "./StoreProvider";
 import SessionProviderWrapper from "@/components/SessionProviderWrapper";
 import SessionCheck from "@/components/SessionCheck";
 import PageLayout from "@/components/PageLayout";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 export const metadata: Metadata = {
   title: "Platform-Admin",
@@ -22,7 +23,7 @@ export default function RootLayout({
         <StoreProvider>
           <SessionProviderWrapper>
             <SessionCheck>
-              <PageLayout>{children}</PageLayout>
+                <PageLayout>{children}</PageLayout>
             </SessionCheck>
           </SessionProviderWrapper>
         </StoreProvider>

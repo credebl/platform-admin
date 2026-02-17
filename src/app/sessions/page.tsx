@@ -1,9 +1,12 @@
-import Dashboard from './Dashboard'
 // eslint-disable-next-line camelcase
+
+import Sessions from "./Sessions"
+
+
 
 const Page = (): React.JSX.Element => {
 
-  return <div><Dashboard/></div>
+   return <Sessions></Sessions>
 }
 
 export default Page

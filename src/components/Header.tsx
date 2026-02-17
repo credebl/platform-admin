@@ -4,7 +4,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "./ui/avtar";
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -13,26 +12,15 @@ import {
 import React, { useEffect, useState } from "react";
 import { getRequest, postRequest } from "@/config/apiCalls";
 import { getUserProfileApi, landingPage, signOutApi } from "@/config/constant";
-import {
-  isOrgLoaded,
-  resetSelectedOrganization,
-} from "@/lib/organizationSlice";
 import { useAppDispatch, useAppSelector } from "@/lib/hooks";
 
-import AppLauncher from "./appLauncher";
 import { Button } from "./ui/button";
 import Image from "next/image";
-import LocaleSwitcher from "./LocaleSwitcher";
-import OrgSwitcher from "./OrgSwitcher";
 import { UseBreadcrumb } from "./ui/breadcrumb";
-import { persistor } from "@/lib/store";
-import { reset } from "@/lib/verifierSlice";
 import { setLoggedInUser } from "@/lib/userSlice";
 import { signOut } from "next-auth/react";
-import { useDispatch } from "react-redux";
 import { useRouter } from "next/navigation";
 
-// import { useSession } from "next-auth/react";
 
 interface UserProfile {
   email: string;
@@ -53,7 +41,7 @@ interface Organisation {
 const Header = (): React.JSX.Element => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [userProfile, setUserProfile] = useState<UserProfile | null>();
-  const verifierToken = useAppSelector((state) => state.verifier.verifierToken);
+  const token = useAppSelector((state) => state.session.token);
 
   const selectedOrg = useAppSelector(
     (state) => state.organization.selectedOrganization
@@ -61,17 +49,17 @@ const Header = (): React.JSX.Element => {
 
   const dispatch = useAppDispatch();
   const router = useRouter();
-  const sessionId = useAppSelector((state) => state.verifier.sessionId)
+  const sessionId = useAppSelector((state) => state.session.sessionId)
 
   // const { data: session } = useSession();
 
   useEffect(() => {
-    if (verifierToken) {
+    if (token) {
       const apiUrl = getUserProfileApi;
       const config = {
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${verifierToken}`,
+          Authorization: `Bearer ${token}`,
         },
       };
 
@@ -98,20 +86,13 @@ const Header = (): React.JSX.Element => {
           console.error("Error fetching user profile:", err);
         });
     }
-  }, [verifierToken]);
+  }, [token]);
 
   const toggleSidebar = (): void => {
     setIsSidebarOpen(!isSidebarOpen);
   };
 
-  // const handleLogout = async (): Promise<void> => {
-  //   await persistor.flush();
-  //   persistor.purge();
-  //   dispatch(reset());
-  //   dispatch(resetSelectedOrganization());
-  //   dispatch(isOrgLoaded(false));
-  //   router.push("/signIn");
-  // };
+
   const handleLogout = async (): Promise<void> => {
     try {
       // Note : need to discuss when screen is ideal and token expired itself below API throw 401
@@ -122,7 +103,7 @@ const Header = (): React.JSX.Element => {
       const config = {
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${verifierToken}`,
+          Authorization: `Bearer ${token}`,
         },
       };
       await postRequest(signOutApi, payload, config);
@@ -217,6 +198,10 @@ const Header = (): React.JSX.Element => {
                           <div> <b>{userProfile?.email}</b></div>
                         </div>
                 </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={()=> router.push("/sessions")}>
+                          Manage Sessions 
+                </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={()=> router.push("/settings")}>
                           Settings 

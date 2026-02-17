@@ -1,23 +1,23 @@
 import { PayloadAction, createSlice } from '@reduxjs/toolkit'
 
-interface VerfierState {
-  verifierToken : string,
+interface SessionState {
+  token : string,
   refreshToken : string,
   sessionId: string,
 }
 
-const initialState: VerfierState = {
-  verifierToken: '',
+const initialState: SessionState= {
+  token: '',
   refreshToken: '',
   sessionId: '',
 }
 
-const verifierSlice = createSlice({
-  name: 'verifier',
+const sessionSlice = createSlice({
+  name: 'session',
   initialState,
   reducers: {
-    setVerifierToken: (state, action: PayloadAction<string>) => {
-      state.verifierToken = action.payload
+    setSessionToken: (state, action: PayloadAction<string>) => {
+      state.token = action.payload
     },
 
     setRefreshToken: (state, action: PayloadAction<string>) => {
@@ -32,5 +32,5 @@ const verifierSlice = createSlice({
   },
 })
 
-export const { setVerifierToken, setRefreshToken, setSessionId, reset } = verifierSlice.actions
-export default verifierSlice.reducer
+export const { setSessionToken, setRefreshToken, setSessionId, reset } = sessionSlice.actions
+export default sessionSlice.reducer

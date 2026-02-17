@@ -1,7 +1,7 @@
 'use client'
 
 import { fetchSessionDetails, landingPage } from '@/config/constant'
-import { setRefreshToken, setSessionId, setVerifierToken } from '@/lib/verifierSlice'
+import { setRefreshToken, setSessionId, setSessionToken } from '@/lib/sessionSlice'
 import { signOut, useSession } from 'next-auth/react'
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
 import { useEffect, useState } from 'react'
@@ -23,11 +23,11 @@ const SessionCheck = ({
   const router = useRouter()
   const pathname = usePathname()
   const locale = pathname?.split('/')[1] || 'en'
-  const token = useAppSelector((state) => state.verifier.verifierToken);
+  const token = useAppSelector((state) => state.session.token);
 
   const setSessionDetails = (sessionDetails: any): void => {
     if (sessionDetails?.data?.sessionToken) {
-      dispatch(setVerifierToken(sessionDetails.data.sessionToken))
+      dispatch(setSessionToken(sessionDetails.data.sessionToken))
     }
     if (sessionDetails?.data?.refreshToken) {
       dispatch(setRefreshToken(sessionDetails.data.refreshToken))
@@ -75,7 +75,7 @@ const SessionCheck = ({
     }
     await fetchSeesionDetails(session.sessionId)
     dispatch(setSessionId(session.sessionId))
-    const redirectUrl = `${process.env.NEXT_PUBLIC_CLIENT_URL}/ecosystems`
+    const redirectUrl = `${process.env.NEXT_PUBLIC_CLIENT_URL}/dashboard`
     router.replace(redirectUrl)
     setIsChecking(false)
   }

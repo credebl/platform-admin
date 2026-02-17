@@ -5,10 +5,10 @@ import organizationReducer from "./organizationSlice";
 import storage from "redux-persist/lib/storage";
 import userReducer from "./userSlice";
 import userRegistrationSlice from "./userRegistrationSlice";
-import verifierSlice from "./verifierSlice";
+import sessionSlice from "./sessionSlice";
 
 const rootReducer = combineReducers({
-  verifier: verifierSlice,
+  session: sessionSlice,
   organization: organizationReducer,
   user: userReducer,
   userRegistartion: userRegistrationSlice
@@ -17,7 +17,7 @@ const rootReducer = combineReducers({
 const persistConfig = {
   key: "root",
   storage,
-  whitelist: ["verifier", "organization", "user", "userRegistartion"],
+  whitelist: ["session", "organization", "user", "userRegistartion"],
 };
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

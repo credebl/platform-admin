@@ -1,5 +1,5 @@
 import { landingPage, refreshTokenUrl } from '@/config/constant'
-import { setRefreshToken, setVerifierToken } from '@/lib/verifierSlice'
+import { setRefreshToken, setSessionToken } from '@/lib/sessionSlice'
 
 import { signOut } from 'next-auth/react'
 import { store } from '@/lib/store'
@@ -28,7 +28,7 @@ export async function logoutUser(): Promise<void> {
 export const generateAccessToken = async (): Promise<void> => {
 
   const state = store.getState()
-  const refreshToken = state?.verifier?.refreshToken
+  const refreshToken = state?.session?.refreshToken
   if (!refreshToken) {
     logoutUser()
   }
@@ -53,7 +53,7 @@ export const generateAccessToken = async (): Promise<void> => {
       }
 
       if (data?.data?.access_token) {
-        store.dispatch(setVerifierToken(data.data.access_token))
+        store.dispatch(setSessionToken(data.data.access_token))
       }
       if (data?.data?.refresh_token) {
         store.dispatch(setRefreshToken(data.data.refresh_token))
