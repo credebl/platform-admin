@@ -15,7 +15,7 @@ const PageLayout: React.FC<PageLayoutProps> = ({ children }) => {
   const toggleSidebar = (): void => {
     setIsSidebarOpen(!isSidebarOpen);
   };
-  const excludeLayoutRoutes = ["/en/signIn", "/fr/signIn", "/pt/signIn", "/", "/en/signUp",'/fr/signUp','/pt/signUp','/en/verifyEmail','/fr/verifyEmail','/pt/verifyEmail'];
+  const excludeLayoutRoutes = ["/signIn"];
   const pathname = usePathname();
   return (
     <>
