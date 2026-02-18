@@ -44,20 +44,6 @@ export default function Dashboard() {
             </p>
          </div>
 
-         {/* <div className="grid sm:flex justify-between"> */}
-         {/*    {stats.map((stat, index) => ( */}
-         {/*       <StatCard */}
-         {/*          key={stat.title} */}
-         {/*          title={stat.title} */}
-         {/*          value={stat.value} */}
-         {/*          icon={stat.icon} */}
-         {/*          className={`animation-delay-${index * 100} border rounded-lg p-6`} */}
-         {/*       /> */}
-         {/*    ))} */}
-         {/* </div> */}
-
-         {/* Quick Actions */}
-
          <div className="flex sm:flex justify-between gap-6">
             {stats.map(({ title, value, icon: Icon }, index) => (
                <Card
@@ -72,20 +58,6 @@ export default function Dashboard() {
                         </h3>
                      </div>
                      <div className="opacity-30">
-                        {/* <svg */}
-                        {/*    xmlns="http://www.w3.org/2000/svg" */}
-                        {/*    width="60" */}
-                        {/*    height="60" */}
-                        {/*    viewBox="0 0 24 24" */}
-                        {/*    fill="none" */}
-                        {/*    stroke="currentColor" */}
-                        {/*    strokeWidth="2" */}
-                        {/*    strokeLinecap="round" */}
-                        {/*    strokeLinejoin="round" */}
-                        {/* > */}
-                        {/*    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path> */}
-                        {/*    <circle cx="12" cy="7" r="4"></circle> */}
-                        {/* </svg> */}
                         <Icon className="w-10 h-10" />
                      </div>
                   </CardContent>
