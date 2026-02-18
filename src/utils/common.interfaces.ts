@@ -22,11 +22,8 @@ export interface IEmptyListMessage {
 }
 
 export enum invitationState {
-   ACTIVE = "ACTIVE",
+   CREATED = "created",
    PENDING = "pending",
-   ACCEPTED = "accepted",
-   REJECTED = "rejected",
-   INACTIVE = "INACTIVE",
 }
 
 export interface ErrorResponse {

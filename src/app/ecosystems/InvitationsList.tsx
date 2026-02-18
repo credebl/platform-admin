@@ -209,22 +209,18 @@ const InvitationsList = (): React.JSX.Element => {
       cell: ({ row }) => (
         <span
           className={`w-1/4 text-xs font-medium min-[120px]:px-4  rounded-md flex justify-center w-fit border  
-          ${row.original?.ecosystem  && row.original?.orgStatus === invitationState.INACTIVE &&
-               "bg-gray-200 border border-[var(--accent)] border-opacity-90 text-muted-foreground"
+          ${!row.original?.ecosystem  &&
+               "status-pending border border-[var(--accent)] border-opacity-90"
                }
-          ${row.original?.ecosystem  && row.original?.orgStatus === invitationState.ACTIVE &&
-               "bg-green-200 text-green border border-green border-opacity-70"
+          ${ row.original?.ecosystem &&
+               "status-accepted border border-green border-opacity-70"
                }
-          ${row.original?.status === invitationState.PENDING || row.original?.status === invitationState.ACCEPTED &&
-               "bg-[var(--primary)]/50  border  border-opacity-70"
-           }
         `}
         >
-          { row.original?.orgStatus === invitationState.INACTIVE
-            ? invitationState.INACTIVE[0].toUpperCase() + invitationState.INACTIVE.slice(1).toLowerCase()
-            : row.original?.orgStatus === invitationState.ACTIVE
-            ? invitationState.ACTIVE[0].toUpperCase() + invitationState.ACTIVE.slice(1).toLowerCase()
-            :"Pending"}
+          { row.original?.ecosystem 
+            ? invitationState.CREATED[0].toUpperCase() + invitationState.CREATED.slice(1).toLowerCase()
+            : invitationState.PENDING[0].toUpperCase() + invitationState.PENDING.slice(1).toLowerCase()
+            }
         </span>
       ),
       columnFunction: [],

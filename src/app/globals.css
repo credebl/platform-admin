@@ -226,10 +226,29 @@ button {
   }
 }
 
+.pending-status {
+   color: #c2410c;
+}
+
 .text-success {
   color: green;
 }
 
 .text-failed {
   color: red;
+}
+
+.status-pending {
+  background-color: #ffedd5;
+  color: #c2410c;
+}
+
+.status-accepted {
+  background-color: #dcfce7;
+  color: #065f46;
+}
+
+.status-rejected {
+  background-color: #fee2e2;
+  color: #b91c1c;
 }
