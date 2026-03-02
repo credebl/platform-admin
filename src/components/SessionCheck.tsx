@@ -22,7 +22,6 @@ const SessionCheck = ({
   const dispatch = useAppDispatch()
   const router = useRouter()
   const pathname = usePathname()
-  const locale = pathname?.split('/')[1] || 'en'
   const token = useAppSelector((state) => state.session.token);
 
   const setSessionDetails = (sessionDetails: any): void => {
@@ -38,7 +37,7 @@ const SessionCheck = ({
     localStorage.removeItem('persist:root')
     persistor.flush()
     persistor.purge()
-    const redirectUrl = `${process.env.NEXT_PUBLIC_CLIENT_URL}/${locale}/${landingPage}`
+    const redirectUrl = `${process.env.NEXT_PUBLIC_CLIENT_URL}/${landingPage}`
     signOut({
       callbackUrl: `${process.env.NEXT_PUBLIC_CREDEBL_UI_PATH}/sign-in?redirectTo=${encodeURIComponent(redirectUrl)}&clientAlias=${process.env.NEXT_PUBLIC_CLIENT_NAME}`,
     })

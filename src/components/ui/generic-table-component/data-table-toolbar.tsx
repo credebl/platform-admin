@@ -49,14 +49,14 @@ export function DataTableToolbar<TData>({
   return (
     <div className="flex items-center justify-between">
       <div className="flex flex-1 flex-col-reverse items-start gap-y-2 sm:flex-row sm:items-center sm:space-x-2">
-        {/* <Input
+        <Input
           placeholder={searchPlaceholder}
           value={localValue}
           onChange={(e) => {
             setLocalValue(e.target.value)
           }}
-          className="h-8 w-[250px] lg:w-[350px]"
-        /> */}
+          className="h-8 w-[250px] lg:w-[350px] px-2"
+        />
         <div className="flex gap-x-2">
           {tableFilterOptions ? (
             tableFilterOptions.map(
@@ -88,6 +88,5 @@ export function DataTableToolbar<TData>({
         )}
       </div>
       <DataTableViewOptions table={table} />
-    </div>
-  )
+    </div>  )
 }

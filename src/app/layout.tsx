@@ -27,7 +27,6 @@ export default function RootLayout({
             </SessionCheck>
           </SessionProviderWrapper>
         </StoreProvider>
-        <Script src={process.env.NEXT_PUBLIC_RAZORPAY_UI_SCRIPT} />
       </body>
     </html>
   );

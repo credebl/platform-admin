@@ -146,7 +146,10 @@ function Sessions(): JSX.Element {
   return (
       <div>
       <div className="px-6 mb-1 flex justify-between">
-            <h1 className="text-2xl font-bold text-foreground">User Sessions</h1>
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">User Sessions</h1>
+         <p className='mb-4 text-muted-foreground'>Manage user sessions</p>
+        </div>
             <Button
               variant="outline"
               onClick={fetchSessions}
@@ -157,7 +160,6 @@ function Sessions(): JSX.Element {
               />
             </Button>
       </div>
-         <p className='px-6 mb-4 text-muted-foreground'>Manage user sessions</p>
     <Card className="border py-2 mx-6">
       <CardContent className="overflow-y-auto py-4">
         {success && (
