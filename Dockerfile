@@ -1,23 +1,47 @@
-FROM node:18-slim as build
-RUN npm install -g pnpm
+# ---------------------
+# Build stage
+# ---------------------
+FROM oven/bun:1.3.3-alpine AS build
 
 WORKDIR /app
-COPY package.json ./
+
+# Copy dependency manifests
+COPY package.json bun.lock ./
+
+# Install dependencies
+RUN bun install
+
+# Copy source
 COPY . .
-RUN pnpm install
-RUN pnpm run build
 
-# Stage 2
-FROM node:18-slim as prod
+# Build Next.js app
+RUN bun --bun run build
 
-RUN npm install -g pnpm
+
+# ---------------------
+# Production stage
+# ---------------------
+FROM oven/bun:1.3.3-alpine AS production
+
+# Create non-root user
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 
 WORKDIR /app
+
+# Copy required runtime files
 COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/package.json ./
 COPY --from=build /app/.next ./.next
 COPY --from=build /app/public ./public
 COPY --from=build /app/src/app ./src/app
 COPY --from=build /app/next.config.mjs ./next.config.mjs
+
+# Fix ownership
+RUN chown -R appuser:appgroup /app
+
+USER appuser
+
 EXPOSE 3001
-CMD [ "pnpm", "run" ,"start"]
+
+# Start Next.js
+CMD ["bun", "run", "start"]
