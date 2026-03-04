@@ -102,7 +102,7 @@ const SessionCheck = ({
             {/* Logo in center */}
             <div className="absolute inset-0 flex items-center justify-center">
               <Image
-                src="/images/SOVIO.svg"
+                src="/images/CREDEBL_ICON.png"
                 alt="SOVIO Logo"
                 width={58}
                 height={58}

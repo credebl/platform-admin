@@ -51,7 +51,7 @@ export enum Currency {
 
 
 export const serializationCondition = ['array', 'object']
-
+export const svgXmlns = 'http://www.w3.org/2000/svg'
 
 export const landingPage = 'dashboard'
 
