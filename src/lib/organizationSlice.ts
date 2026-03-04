@@ -1,12 +1,10 @@
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
 
-import { OrgAgentdetails } from "@/utils/common.interfaces";
 
 interface SelectedOrgnization{
   orgId: string;
   orgName: string;
   orgLogo: string;
-  orgAgent: OrgAgentdetails[]|[];
   appLaunchDetails?:[{}]
 }
 interface OrganizationState {
