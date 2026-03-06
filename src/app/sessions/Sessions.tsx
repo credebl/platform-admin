@@ -25,7 +25,7 @@ function Sessions(): JSX.Element {
   const [deletionId, setDeletionId] = useState<string | null>(null)
 
   const [showConfirmation, setShowConfirmation] = useState<boolean>(false)
-  const userId = useAppSelector((state: RootState) =>{console.log("state",state);return state.user?.userDetails?.userId})
+  const userId = useAppSelector((state: RootState) =>{return state.user?.userDetails?.userId})
   console.log("userId",userId)
   const currentSession = useAppSelector(
     (state: RootState) => state.session.sessionId,

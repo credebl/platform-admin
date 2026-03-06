@@ -1,10 +1,12 @@
 'use client'
-import { useEffect, useState, type ReactElement } from "react"
+import { useEffect, useState } from "react"
 
-import { Globe, Mail, Building2, Trash2 } from "lucide-react";
+import { Globe, Mail, Building2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { getRequest } from "@/config/apiCalls";
-import { dashboardData } from "@/config/constant";
+import { dashboardData, ecosystemStatus } from "@/config/constant";
+import { useDispatch } from "react-redux";
+import { setEcosystemEnableStatus } from "@/lib/ecosystemSlice";
 
 
 export default function Dashboard() {
@@ -19,20 +21,38 @@ export default function Dashboard() {
       { title: "Invitations Sent", value: cardData.invitations, icon: Mail },
       { title: "Active Organizations", value: cardData.activeOrgs, icon: Building2 }
    ];
+
+   const dispatch = useDispatch()
+
   async function fetchDashboardDetails(): Promise<void> {
       try{
          const data = await getRequest(dashboardData)
-         console.log("data",data)
          if (data?.data.data) {
           setCardData(data?.data.data)
          }
       } catch {
-         console.log('failed to fetch dashboard details')
+         console.error('failed to fetch dashboard details')
+      }
+   }
+
+
+  const fetchEcosystemStatus = async ():Promise<void>=>{ 
+      try{
+        const response = await getRequest(ecosystemStatus)
+        if (response) {
+            dispatch(setEcosystemEnableStatus(response.data.data))
+        }
+      }catch(error){
+        console.error("failed to fetch ecosystem status",error)
       }
    }
 
    useEffect(()=> {
+   },[])
+
+   useEffect(()=> {
       fetchDashboardDetails()
+      fetchEcosystemStatus()
    },[])
 
    return (
@@ -45,7 +65,7 @@ export default function Dashboard() {
          </div>
 
          <div className="flex sm:flex justify-between gap-6">
-            {stats.map(({ title, value, icon: Icon }, index) => (
+            {stats.map(({ title, value, icon: Icon }) => (
                <Card
                   key={title}
                   className="shadow grow"

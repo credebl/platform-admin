@@ -8,18 +8,23 @@ import { Globe, CheckCircle2, XCircle } from "lucide-react";
 import { getRequest, putRequest } from "@/config/apiCalls";
 import { ecosystemStatus, updateEcosystemStatusApi } from "@/config/constant";
 import { HttpStatusCode } from "axios";
+import { useAppSelector } from "@/lib/hooks";
+import { RootState } from "@/lib/store";
+import { useDispatch } from "react-redux";
+import { setEcosystemEnableStatus } from "@/lib/ecosystemSlice";
 
 const Settings = () => {
-  const [ecosystemEnabled, setEcosystemEnabled] = useState(true);
   const [alertMessage, setAlertMessage] = useState<string | null>(null);
   const [alertType, setAlertType] = useState<"success" | "error">("success");
+  const ecosystemEnabled = useAppSelector((state: RootState) => state.ecosystem?.ecosystemEnableStatus)
+
+  const dispatch = useDispatch()
 
   async function updateEcosystemStatus(checked: boolean):Promise<void>{
       try{
         const response = await putRequest(updateEcosystemStatusApi,{ isEcosystemEnabled: checked })
-        console.log("response",response)
         if (response && response.status === HttpStatusCode.Ok) {
-           setEcosystemEnabled(checked);
+           dispatch(setEcosystemEnableStatus(checked))
            setAlertType("success");
            setAlertMessage(`Ecosystem ${checked ? "enabled" : "disabled"} successfully`);
            setTimeout(() => setAlertMessage(null), 3000);
@@ -38,9 +43,9 @@ const Settings = () => {
   const fetchEcosystemStatus = async ():Promise<void>=>{ 
       try{
         const response = await getRequest(ecosystemStatus)
-        console.log("response",response)
         if (response) {
-            setEcosystemEnabled(response.data.data)
+           dispatch(setEcosystemEnableStatus(response.data.data))
+           setAlertType("success");
         }
       }catch(error){
         console.error("failed to fetch ecosystem status",error)
@@ -49,6 +54,7 @@ const Settings = () => {
 
    useEffect(()=> {
     fetchEcosystemStatus()
+
    },[])
 
   return (
