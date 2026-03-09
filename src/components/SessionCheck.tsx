@@ -5,7 +5,7 @@ import { setRefreshToken, setSessionId, setSessionToken } from '@/lib/sessionSli
 import { signOut, useSession } from 'next-auth/react'
 import { useAppDispatch, useAppSelector } from '@/lib/hooks'
 import { useEffect, useState } from 'react'
-import { usePathname, useRouter } from 'next/navigation'
+import {  useRouter } from 'next/navigation'
 
 import Image from 'next/image'
 import Loader from '@/components/Loader'
@@ -21,7 +21,6 @@ const SessionCheck = ({
   const [isChecking, setIsChecking] = useState(true)
   const dispatch = useAppDispatch()
   const router = useRouter()
-  const pathname = usePathname()
   const token = useAppSelector((state) => state.session.token);
 
   const setSessionDetails = (sessionDetails: any): void => {

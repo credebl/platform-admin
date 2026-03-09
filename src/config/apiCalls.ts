@@ -112,6 +112,9 @@ axios.interceptors.request.use(
 const handleError = async (error: any): Promise<never> => {
   if (error.response) {
     // Server responded with a status other than 200 range
+    if (error.response.status === 403){
+         logoutUser()
+      }
     if (error.response.status === 401) {
       await generateAccessToken()
     }
