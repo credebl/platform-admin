@@ -6,18 +6,20 @@ import storage from "redux-persist/lib/storage";
 import userReducer from "./userSlice";
 import userRegistrationSlice from "./userRegistrationSlice";
 import sessionSlice from "./sessionSlice";
+import ecosystemSlice from "./ecosystemSlice";
 
 const rootReducer = combineReducers({
   session: sessionSlice,
   organization: organizationReducer,
   user: userReducer,
-  userRegistartion: userRegistrationSlice
+  userRegistartion: userRegistrationSlice,
+  ecosystem: ecosystemSlice
 });
 
 const persistConfig = {
   key: "root",
   storage,
-  whitelist: ["session", "organization", "user", "userRegistartion"],
+  whitelist: ["session", "organization", "user", "userRegistartion", "ecosystem"],
 };
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

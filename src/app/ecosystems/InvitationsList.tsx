@@ -14,7 +14,6 @@ import React, { useEffect, useState } from "react";
 import { dateConversion } from "@/config/common.functions";
 import {
   invitationsApi,
-  signOutApi,
 } from "@/config/constant";
 import { getRequest, postRequest } from "@/config/apiCalls";
 
@@ -23,15 +22,13 @@ import { CellContext } from "@tanstack/react-table";
 import { DataTable } from "@/components/ui/generic-table-component/data-table";
 import Modal from "@/components/Modal";
 import { RefreshCw } from "lucide-react";
-import { signOut } from "next-auth/react";
-import { useAppSelector } from "@/lib/hooks";
-import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
-import Alert from "@/components/alert";
 import { HttpStatusCode } from "axios";
 import { AlertComponent } from "@/components/AlertComponent";
 import { TooltipContent, TooltipProvider, TooltipTrigger, Tooltip } from "@/components/ui/tooltip";
 import { Formik, Form as FormikForm } from "formik";
+import { useAppSelector } from '@/lib/hooks';
+import { RootState } from '@/lib/store';
 
 
 
@@ -70,12 +67,8 @@ const InvitationsList = (): React.JSX.Element => {
   const [errorMessage, setErrorMessage] = useState("");
   const [showAlert, setShowAlert] = useState(false);
   const [message, setMessage] = useState('')
-  const sessionId = useAppSelector((state) => state.session.sessionId);
 
-
-  const accessToken = useAppSelector(
-    (state) => state.session.token
-  );
+  const ecosystemEnabled = useAppSelector((state: RootState) => state.ecosystem?.ecosystemEnableStatus)
 
   const [paginationParameter, setPaginationParameter] = useState<PageParameter>(
     {
@@ -93,7 +86,6 @@ const InvitationsList = (): React.JSX.Element => {
     }
   );
 
-  const redirectUrl = `${process.env.NEXT_PUBLIC_CLIENT_URL}/dashboard`;
 
   const validationSchema = Yup.object().shape({
     email: Yup.string()
@@ -301,13 +293,15 @@ const InvitationsList = (): React.JSX.Element => {
                 className={`h-5 w-5 ${tableLoading ? "animate-spin" : ""}`}
               />
             </Button>
-            <Button
-              onClick={showInvitationPopUp}
-              className="flex items-center gap-2 px-4 py-2 text-base font-medium"
-              disabled={loading}
-            >
-              Create Ecosystem Lead
-            </Button>
+            { ecosystemEnabled &&
+               <Button
+                 onClick={showInvitationPopUp}
+                 className="flex items-center gap-2 px-4 py-2 text-base font-medium"
+                 disabled={loading}
+               >
+                 Create Ecosystem Lead
+               </Button>
+             }
           </div>
         </div>
         <div className="relative min-h-[400px]">
