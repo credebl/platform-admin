@@ -27,7 +27,7 @@
     "@reduxjs/toolkit": "^2.3.0",
     "@supabase/supabase-js": "^2.49.1",
     "@tanstack/react-table": "^8.21.3",
-    "axios": "^1.7.2",
+    "axios": "^1.15.0",
     "class-variance-authority": "^0.7.1",
     "classnames": "^2.5.1",
     "clsx": "^2.1.1",
