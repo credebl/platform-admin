@@ -1,5 +1,7 @@
 # .github/dependabot.yml
 
+# .github/dependabot.yml
+
 version: 2
 
 updates:
@@ -17,22 +19,31 @@ updates:
     open-pull-requests-limit: 10
 
     groups:
-      minor-updates:
+      # One PR for all patch updates (bun)
+      patch-updates:
+        update-types:
+          - "patch"
         patterns:
           - "*"
+
+      # One PR for all minor updates (bun)
+      minor-updates:
         update-types:
           - "minor"
+        patterns:
+          - "*"
 
     allow:
       - dependency-type: "all"
 
     labels:
       - "dependencies"
-      - "bun"                   # label for Bun dependencies
+      - "bun"
 
     commit-message:
       prefix: "chore"
       include: "scope"
+
 
   # =========================
   # GitHub Actions
@@ -46,6 +57,21 @@ updates:
       time: "09:00"
       timezone: "Asia/Kolkata"
 
+    groups:
+      # One PR for all patch updates (actions)
+      patch-updates:
+        update-types:
+          - "patch"
+        patterns:
+          - "*"
+
+      # One PR for all minor updates (actions)
+      minor-updates:
+        update-types:
+          - "minor"
+        patterns:
+          - "*"
+
     labels:
       - "dependencies"
       - "github-actions"
@@ -53,12 +79,6 @@ updates:
     commit-message:
       prefix: "ci"
 
-    groups:
-      minor-updates:
-        patterns:
-          - "*"
-        update-types:
-          - "minor"
 
   # =========================
   # Docker
@@ -73,16 +93,24 @@ updates:
       time: "09:00"
       timezone: "Asia/Kolkata"
 
+    groups:
+      # One PR for all patch updates (docker)
+      patch-updates:
+        update-types:
+          - "patch"
+        patterns:
+          - "*"
+
+      # One PR for all minor updates (docker)
+      minor-updates:
+        update-types:
+          - "minor"
+        patterns:
+          - "*"
+
     labels:
       - "dependencies"
       - "docker"
 
     commit-message:
       prefix: "build"
-
-    groups:
-      minor-updates:
-        patterns:
-          - "*"
-        update-types:
-          - "minor"
