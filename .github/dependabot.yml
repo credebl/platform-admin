@@ -1,7 +1,5 @@
 # .github/dependabot.yml
 
-# .github/dependabot.yml
-
 version: 2
 
 updates:
@@ -16,7 +14,6 @@ updates:
       day: "monday"
       time: "09:00"
       timezone: "Asia/Kolkata"
-    open-pull-requests-limit: 10
 
     groups:
       # One PR for all patch updates (bun)
@@ -75,6 +72,7 @@ updates:
     labels:
       - "dependencies"
       - "github-actions"
+      - "devops"
 
     commit-message:
       prefix: "ci"
@@ -111,6 +109,7 @@ updates:
     labels:
       - "dependencies"
       - "docker"
+      - "devops"
 
     commit-message:
       prefix: "build"
