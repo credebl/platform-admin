@@ -1,7 +1,7 @@
 # ---------------------
 # Build stage
 # ---------------------
-FROM oven/bun:1.3.3-alpine AS build
+FROM oven/bun:1.3.14-alpine AS build
 
 WORKDIR /app
 
@@ -21,7 +21,7 @@ RUN bun --bun run build
 # ---------------------
 # Production stage
 # ---------------------
-FROM oven/bun:1.3.3-alpine AS production
+FROM oven/bun:1.3.14-alpine AS production
 
 # Create non-root user
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
