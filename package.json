@@ -40,8 +40,8 @@
     "jwt-decode": "^4.0.0",
     "lucide-react": "^0.564.0",
     "nanoid": "^5.1.5",
-    "next": "15.5.16",
-    "next-auth": "^4.24.11",
+    "next": "15.5.28",
+    "next-auth": "^4.24.15",
     "next-themes": "^0.4.6",
     "qr-scanner": "^1.4.2",
     "qrcode": "^1.5.3",
@@ -77,5 +77,13 @@
     "postcss": "^8",
     "prettier-plugin-tailwindcss": "^0.6.0",
     "typescript": "^5"
+  },
+  "overrides": {
+    "form-data": "^4.0.4",
+    "tar": "^7.5.19"
+  },
+  "resolutions": {
+    "form-data": "^4.0.4",
+    "tar": "^7.5.19"
   }
 }
