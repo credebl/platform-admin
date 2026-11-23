@@ -38,7 +38,7 @@
     "flowbite-react": "^0.10.1",
     "formik": "^2.4.6",
     "jwt-decode": "^4.0.0",
-    "lucide-react": "^0.564.0",
+    "lucide-react": "^1.76.0",
     "nanoid": "^5.1.5",
     "next": "15.5.29",
     "next-auth": "^4.24.11",
